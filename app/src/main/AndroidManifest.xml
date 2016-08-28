@@ -93,6 +93,7 @@ Redistribution and use in source and binary forms, with or without modification,
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
-        
+        <activity android:name=".NextWptActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"></activity>
+
     </application>
 </manifest>
