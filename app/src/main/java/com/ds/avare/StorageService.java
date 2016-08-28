@@ -11,6 +11,8 @@ Redistribution and use in source and binary forms, with or without modification,
 */
 package com.ds.avare;
 
+import android.annotation.TargetApi;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.location.GpsStatus;
@@ -522,7 +524,7 @@ public class StorageService extends Service {
                     if(mDestination != null) {
                         mDestination.updateTo(getGpsParams());
                     }
-
+                    
                     // Calculate course line deviation - this must be AFTER the destination update
                     // since the CDI uses the destination in its calculations
                     getCDI().calcDeviation(mDestination, getPlan());
