@@ -257,7 +257,7 @@ public class Plan implements Observer {
     }
 
     /*
-     * Find the next not passed destination
+     * Find index of the next not passed destination
      */
     public int findNextNotPassed() {
         /*

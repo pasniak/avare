@@ -11,6 +11,8 @@ Redistribution and use in source and binary forms, with or without modification,
 */
 package com.ds.avare;
 
+import android.annotation.TargetApi;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.location.GpsStatus;
@@ -19,6 +21,8 @@ import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 
 import com.ds.avare.adsb.TrafficCache;
 import com.ds.avare.cap.DrawCapLines;
@@ -282,7 +286,13 @@ public class StorageService extends Service {
             return StorageService.this;
         }
     }
-    
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_NOT_STICKY;
+    }
+
+
     /* (non-Javadoc)
      * @see android.app.Service#onBind(android.content.Intent)
      */
@@ -510,9 +520,20 @@ public class StorageService extends Service {
                     }
 
                     if(mDestination != null) {
-                        mDestination.updateTo(getGpsParams());
+                        long lastNotification = mDestination.getLastNotification();
+
+                        GpsParams gps = getGpsParams();
+                        long timeBetweenUpdates = gps.getTime() - lastNotification;
+                        mDestination.updateTo(gps);
+
+                        if (!mDestination.getNoMoreNotifications()
+                                && mDestination.getDistance() < 5.0
+                                && timeBetweenUpdates > 60*1000) {
+                            createNotification(mDestination);
+                            mDestination.setLastNotification(gps.getTime());
+                        }
                     }
-                    
+
                     // Calculate course line deviation - this must be AFTER the destination update
                     // since the CDI uses the destination in its calculations
                     getCDI().calcDeviation(mDestination, getPlan());
@@ -552,7 +573,57 @@ public class StorageService extends Service {
         };
         mGps = new Gps(this, intf);
     }
-        
+
+    @TargetApi(19)
+    private void createNotification(Destination d) {
+        int destinationHash = d.getID().hashCode();
+
+        // Explicit intent to wrap
+        Intent intent = new Intent(this, NextWptActivity.class);
+        intent.putExtra("NotificationId", destinationHash);
+        if (getPlan().isActive()) {
+            int destinationIndexInThePlan = getPlan().findNextNotPassed();
+            intent.putExtra("DestinationPlanIndex", destinationIndexInThePlan);
+        }
+
+        // Create pending intent and wrap our intent
+        PendingIntent pendingNextWptIntent =
+                PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        //see https://developer.android.com/training/wearables/notifications/creating.html
+        NotificationCompat.Action nextAction =
+                new NotificationCompat.Action.Builder(R.drawable.plan, "Next Wpt", pendingNextWptIntent).build();
+
+        NotificationManagerCompat nm = NotificationManagerCompat.from(this);
+
+        // Specify the 'big view' content to display the long
+        // event description that may not fit the normal content text.
+        NotificationCompat.BigTextStyle bigStyle = new NotificationCompat.BigTextStyle();
+        bigStyle.bigText(d.toString());
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                .setSmallIcon(R.drawable.plan)
+                .setContentTitle(d.getID())
+                .setContentText(d.toString())
+                .setOnlyAlertOnce(true)
+                .setContentIntent(pendingNextWptIntent)
+                .setStyle(bigStyle);
+
+        builder.addAction(nextAction);
+        builder.extend(new NotificationCompat.WearableExtender().addAction(nextAction));
+
+        nm.notify(destinationHash, builder.build());
+    }
+
+    // public callback for NextWptActivity
+    public void advancePlanFrom(int destinationPlanIndex) {
+        mPlan.advance();
+        // do not gat any more notifications about previous destination
+        Destination previousDest = mPlan.getDestination(destinationPlanIndex);
+        if (previousDest != null)
+            previousDest.setNoMoreNotifications(true);
+    }
+
     /* (non-Javadoc)
      * @see android.app.Service#onDestroy()
      */

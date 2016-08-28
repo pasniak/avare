@@ -107,10 +107,14 @@ public class Destination extends Observable {
     
     private double mDeclination;
 
+    private long mLastNotification;
+    private boolean mNoMoreNotifications;
+
     /*
      * This is where destination was set.
      */
     private double mLonInit;
+
     private double mLatInit;
     
     private String mDestType;
@@ -479,6 +483,11 @@ public class Destination extends Observable {
     public String getFuel() {
         return mFuel;
     }
+
+    public long getLastNotification() { return mLastNotification; }
+    public void setLastNotification(long t) { mLastNotification = t; }
+    public boolean getNoMoreNotifications() { return mNoMoreNotifications; }
+    public void setNoMoreNotifications(boolean b) { mNoMoreNotifications = b; }
 
     /**
      * @author zkhan
