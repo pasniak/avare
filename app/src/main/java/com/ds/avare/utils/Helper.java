@@ -673,6 +673,32 @@ public class Helper {
     	return absDiff;
     }
 
+    /** Calculate angular difference in clock hand terms
+     *
+     * @param hdg angle 1 in degrees (typically the ship's heading)
+     * @param brg angle 2 in degrees (typically the bearing to point)
+     * @return angle expressed in 1 o'clock (30deg R), etc.
+     */
+    public static int getOClockPosition(double hdg, double brg) {
+        double a = (int)Helper.angularDifference(hdg, brg);
+        if (leftOfCourseLine(hdg, brg)) a = -a;
+        int oClock =
+                (a > -15 && a < 15) ? 12 :
+                    (a > -45 && a < -15) ? 11 :
+                            (a > -75 && a < -45) ? 10 :
+                                    (a > -105 && a < -75) ? 9 :
+                                            (a > -135 && a < -105) ? 8 :
+                                                    (a > -165 && a < -135) ? 7 :
+
+                                                            (a > 15 && a < 45) ? 1 :
+                                                                    (a > 45 && a < 75) ? 2 :
+                                                                            (a > 75 && a < 105) ? 3 :
+                                                                                    (a > 105 && a < 135) ? 4 :
+                                                                                            (a > 135 && a < 165) ? 5 :
+                         6;
+        return oClock;
+    }
+
     /***
      * Is the brgTrue to the left of the brgCourse line (extended).
      * @param brgTrue true bearing to destination from current location

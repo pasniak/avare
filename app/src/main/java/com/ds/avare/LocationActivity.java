@@ -30,10 +30,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ds.avare.adapters.PopoutAdapter;
@@ -254,7 +257,7 @@ public class LocationActivity extends Activity implements Observer {
      */
     private boolean isSameDest(String dest) {
         if(mService != null) {
-            Destination cdest = mService.getDestination();
+            final Destination cdest = mService.getDestination();
             if(cdest != null) {
                 if(dest.contains("&")) {
                     /*
@@ -272,7 +275,8 @@ public class LocationActivity extends Activity implements Observer {
                     }
                     if(Helper.isSameGPSLocation(cdest.getLocation().getLongitude(),
                             cdest.getLocation().getLatitude(), lon, lat)) {
-                        return true;
+
+                         return true;
                     }
                 }
                 else if(dest.equals(cdest.getID())) {
@@ -281,6 +285,39 @@ public class LocationActivity extends Activity implements Observer {
             }
         }
         return false;
+    }
+
+    private void renameTextBox(final Destination dest)
+    {
+        final EditText txtUrl = new EditText(this);
+
+        // the default text is the destination ID, selected so it can be replaced
+        txtUrl.setText(dest.getID(), TextView.BufferType.SPANNABLE);
+        txtUrl.selectAll();
+
+        AlertDialog.Builder b = new AlertDialog.Builder(this)
+                .setTitle("Rename Waypoint")
+                .setView(txtUrl)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String newName = txtUrl.getText().toString();
+                        renameDest(dest, newName);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                });
+        AlertDialog d = b.create();
+        // make sure the on-screen keyboard pops-up
+        //see http://stackoverflow.com/questions/3455235/when-using-alertdialog-builder-with-edittext-the-soft-keyboard-doesnt-pop
+        d.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        d.show();
+    }
+
+    private void renameDest(Destination d, String name)
+    {
+        if (d != null) d.setID(name);
     }
 
     /**
@@ -497,10 +534,22 @@ public class LocationActivity extends Activity implements Observer {
 
                 if (GestureInterface.LONG_PRESS == event) {
                     /*
-                     * Show the popout
+                     * Show the popout if the coordinates clicked are in the plan
                      */
                     mAirportPressed = data.airport;
                     if (mAirportPressed.contains("&")) {
+                        String[] latLon = data.airport.split("&");
+                        double lat = Double.parseDouble(latLon[0]),
+                               lon = Double.parseDouble(latLon[1]);
+                        Plan plan = mService.getPlan();
+                        if (plan!= null) {
+                            Destination destToRename = plan.findDestinationByLocation(lon, lat);
+                            if (destToRename != null) {
+                                renameTextBox(destToRename);
+                                return;  // so there is no further popups
+                            }
+                        }
+
                         mPlatesButton.setEnabled(false);
                         mAfdButton.setEnabled(false);
                     } else {

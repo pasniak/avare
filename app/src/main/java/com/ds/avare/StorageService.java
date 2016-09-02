@@ -11,8 +11,6 @@ Redistribution and use in source and binary forms, with or without modification,
 */
 package com.ds.avare;
 
-import android.annotation.TargetApi;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.location.GpsStatus;
@@ -21,7 +19,6 @@ import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
 import com.ds.avare.adsb.TrafficCache;
@@ -42,6 +39,7 @@ import com.ds.avare.instruments.Odometer;
 import com.ds.avare.instruments.UpTimer;
 import com.ds.avare.instruments.VNAV;
 import com.ds.avare.instruments.VSI;
+import com.ds.avare.message.Notification;
 import com.ds.avare.network.ShapeFetcher;
 import com.ds.avare.network.TFRFetcher;
 import com.ds.avare.place.Area;
@@ -517,7 +515,8 @@ public class StorageService extends Service {
                         if (!mDestination.getNoMoreNotifications()
                                 && mDestination.getDistance() < 5.0
                                 && timeBetweenUpdates > 60*1000) {
-                            createNotification(mDestination);
+                            Notification note = new Notification(getApplicationContext(), getPlan(), gps);
+                            note.create(mDestination);
                             mDestination.setLastNotification(gps.getTime());
                         }
                     }
@@ -560,54 +559,25 @@ public class StorageService extends Service {
         mGps = new Gps(this, intf);
     }
 
-    @TargetApi(19)
-    private void createNotification(Destination d) {
-        int destinationHash = d.getID().hashCode();
 
-        // Explicit intent to wrap
-        Intent intent = new Intent(this, NextWptActivity.class);
-        intent.putExtra("NotificationId", destinationHash);
-        if (getPlan().isActive()) {
-            int destinationIndexInThePlan = getPlan().findNextNotPassed();
-            intent.putExtra("DestinationPlanIndex", destinationIndexInThePlan);
-        }
-
-        // Create pending intent and wrap our intent
-        PendingIntent pendingNextWptIntent =
-                PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-        //see https://developer.android.com/training/wearables/notifications/creating.html
-        NotificationCompat.Action nextAction =
-                new NotificationCompat.Action.Builder(R.drawable.plan, "Next Wpt", pendingNextWptIntent).build();
-
+    /** public callback for NextWptActivity, this happens when user click "Next"
+     *
+     * @param nextIntent
+     */
+    public void advancePlanFrom(Intent nextIntent) {
+        // get the notification id and cancel
+        int notificationId = nextIntent.getIntExtra(NextWptActivity.NOTIFICATION_ID_EXTRA, 0);
         NotificationManagerCompat nm = NotificationManagerCompat.from(this);
+        nm.cancel(notificationId);
 
-        // Specify the 'big view' content to display the long
-        // event description that may not fit the normal content text.
-        NotificationCompat.BigTextStyle bigStyle = new NotificationCompat.BigTextStyle();
-        bigStyle.bigText(d.toString());
+        // disable notifications about the previous destination
+        int destinationPlanIndex = nextIntent.getIntExtra(NextWptActivity.DESTINATION_PLAN_INDEX_EXTRA, 0);
+        Destination currentDest = mPlan.getDestination(destinationPlanIndex);
+        if (currentDest != null)
+            currentDest.setNoMoreNotifications(true);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(R.drawable.plan)
-                .setContentTitle(d.getID())
-                .setContentText(d.toString())
-                .setOnlyAlertOnce(true)
-                .setContentIntent(pendingNextWptIntent)
-                .setStyle(bigStyle);
-
-        builder.addAction(nextAction);
-        builder.extend(new NotificationCompat.WearableExtender().addAction(nextAction));
-
-        nm.notify(destinationHash, builder.build());
-    }
-
-    // public callback for NextWptActivity
-    public void advancePlanFrom(int destinationPlanIndex) {
+        // move to next destination in the plan
         mPlan.advance();
-        // do not gat any more notifications about previous destination
-        Destination previousDest = mPlan.getDestination(destinationPlanIndex);
-        if (previousDest != null)
-            previousDest.setNoMoreNotifications(true);
     }
 
     /* (non-Javadoc)

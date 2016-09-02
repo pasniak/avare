@@ -782,6 +782,10 @@ public class Destination extends Observable {
         return(mName);
     }
 
+    public void setID(String name) {
+        mName = name.toUpperCase(Locale.getDefault());;
+    }
+
     /**
      * @return
      */

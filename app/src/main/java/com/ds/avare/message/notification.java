@@ -1,0 +1,85 @@
+package com.ds.avare.message;
+
+import android.annotation.TargetApi;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+
+import com.ds.avare.NextWptActivity;
+import com.ds.avare.R;
+import com.ds.avare.gps.GpsParams;
+import com.ds.avare.place.Destination;
+import com.ds.avare.place.Plan;
+
+/**
+ * Created by Michal on 9/2/2016.
+ */
+public class Notification {
+
+    Context mContext;
+    Plan mPlan;
+    GpsParams mGps;
+
+    public Notification (Context context, Plan plan, GpsParams gps) {
+        mContext = context; mPlan = plan; mGps = gps;
+    }
+
+    /** Create a notification with the destination distance, angular position
+     *  and NextWptActivity activity
+     *
+     * @param d destination which will be featured in the notification
+     */
+    @TargetApi(19)
+    public void create(Destination d) {
+        int destinationHash = d.getID().hashCode();
+
+        // Explicit intent to wrap; clicking "Next [next wpt]" will advance the plan
+        Intent nextIntent = new Intent(mContext, NextWptActivity.class);
+        // pass the id so the notification can be cancelled
+        nextIntent.putExtra(NextWptActivity.NOTIFICATION_ID_EXTRA, destinationHash);
+        String actionName = "Next";
+
+        if (mPlan.isActive()) {
+            int destinationIndex = mPlan.findNextNotPassed();  // current destination
+            nextIntent.putExtra(NextWptActivity.DESTINATION_PLAN_INDEX_EXTRA, destinationIndex);
+
+            Destination nextDestination = mPlan.getDestination(destinationIndex + 1);
+            actionName = "Next" + (nextDestination != null ? "("+ nextDestination.getID()+")" : "");
+        }
+
+        // Create pending intent and wrap our "Next" intent
+        PendingIntent pendingNextWptIntent =
+                PendingIntent.getActivity(mContext, 1, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        //see https://developer.android.com/training/wearables/notifications/creating.html
+        // make notifications compatible with all android versions
+        NotificationCompat.Action nextAction =
+                new NotificationCompat.Action.Builder(R.drawable.plan, actionName, pendingNextWptIntent).build();
+
+        NotificationManagerCompat nm = NotificationManagerCompat.from(mContext);
+
+        //contents of the notification; the same on the phone and Wear device
+        String notificationTitle = d.getID();
+        int oClock = com.ds.avare.utils.Helper.getOClockPosition(mGps.getBearing(), d.getBearing());
+        String notificationText = d.toString().trim() + " @" + Integer.toString(oClock);
+
+        // Add 'big view' content to display the long description that may not fit the normal content text.
+        // this will be displayed on a Watch
+        NotificationCompat.BigTextStyle bigStyle = new NotificationCompat.BigTextStyle()
+                .bigText(notificationText);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
+        builder.setSmallIcon(R.drawable.plan)           // use "plan" icon
+                .setContentTitle(notificationTitle)     // first line:  ongoing destination name
+                .setContentText(notificationText)       // second line: destination heading etc.
+                .setOnlyAlertOnce(true)                 // update without annoying the user
+                .setContentIntent(pendingNextWptIntent) // notification is clicked: go Next
+                .setStyle(bigStyle)                     // looks better on watches
+                .addAction(nextAction);                 // make "Next" action appear on watches
+        builder.extend(new NotificationCompat.WearableExtender().addAction(nextAction));
+        nm.notify(destinationHash, builder.build()); // send the notification
+    }
+
+}
