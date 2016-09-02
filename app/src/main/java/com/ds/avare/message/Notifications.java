@@ -30,7 +30,7 @@ import com.ds.avare.place.Plan;
 /**
  * Created by Michal on 9/2/2016.
  */
-public class Notification {
+public class Notifications {
 
     Context mContext;
     Plan mPlan;
@@ -38,7 +38,7 @@ public class Notification {
 
     SearchAdapter mBitmapSearchAdapterNoId;
 
-    public Notification (Context context, Plan plan, GpsParams gps) {
+    public Notifications (Context context, Plan plan, GpsParams gps) {
         mContext = context; mPlan = plan; mGps = gps;
         String[] EMPTY_ARRAY = new String[0];
         mBitmapSearchAdapterNoId = new SearchAdapter(mContext, EMPTY_ARRAY);
@@ -52,34 +52,29 @@ public class Notification {
     public void create(Destination d) {
         int destinationHash = d.getID().hashCode();
 
-        // Explicit intent to wrap; clicking "Next [next wpt]" will advance the plan
-        Intent nextIntent = new Intent(mContext, NextWptActivity.class);
-        // pass the id so the notification can be cancelled
-        nextIntent.putExtra(NextWptActivity.NOTIFICATION_ID_EXTRA, destinationHash);
-        String nextActionName = "Next";
+        //prepare next action and next intent
+        NextActionBuilder nextBuilder = new NextActionBuilder(destinationHash).build();
 
-        if (mPlan.isActive()) {
-            int destinationIndex = mPlan.findNextNotPassed();  // current destination
-            nextIntent.putExtra(NextWptActivity.DESTINATION_PLAN_INDEX_EXTRA, destinationIndex);
+        //build the visuals of the notification
+        NotificationCompat.Builder builder = buildNotificationVisuals(d);
 
-            Destination nextDestination = mPlan.getDestination(destinationIndex + 1);
-            nextActionName = "Next" + (nextDestination != null ? "("+ nextDestination.getID()+")" : "");
-        }
+        // add the intent and actions
+        builder.setContentIntent(nextBuilder.getPendingNextWptIntent()); // notification is clicked: go Next
+        builder.addAction(nextBuilder.getNextAction());                  // make "Next" action appear on phone
+        builder.extend(new NotificationCompat.WearableExtender()         // make "Next" action appear on watch
+                .addAction(nextBuilder.getNextAction()));
 
-        // Create pending intent and wrap our "Next" intent
-        PendingIntent pendingNextWptIntent =
-                PendingIntent.getActivity(mContext, 1, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        // use a notification manager creates notifications compatible with android versions
+        NotificationManagerCompat.from(mContext).notify(destinationHash, builder.build()); // send the notification
+    }
 
-        //see https://developer.android.com/training/wearables/notifications/creating.html
-        // make notifications compatible with all android versions
-        // NOTE: I was unable to figure out how to add a custom icon for the action
-        NotificationCompat.Action nextAction =
-                new NotificationCompat.Action.Builder(R.drawable.plane_green, nextActionName, pendingNextWptIntent).build();
+    String cleanup(String name) { return name.replaceAll("@.*",""); } // remove @ character & coordinates
 
-        NotificationManagerCompat nm = NotificationManagerCompat.from(mContext);
+    /// builds the visual part of a notification
+    public NotificationCompat.Builder buildNotificationVisuals(Destination d) {
 
         //contents of the notification; the same on the phone and Wear device
-        String notificationTitle = d.getID();
+        String notificationTitle = cleanup(d.getID());
         int oClock = com.ds.avare.utils.Helper.getOClockPosition(mGps.getBearing(), d.getBearing());
         String notificationText = d.toString().trim() + " @" + Integer.toString(oClock);
 
@@ -88,6 +83,7 @@ public class Notification {
         NotificationCompat.BigTextStyle bigStyle = new NotificationCompat.BigTextStyle()
                 .bigText(notificationText);
 
+        // convert the waypoint type into the notification image
         Bitmap notificationIcon = mBitmapSearchAdapterNoId.getBitmap(d.getDbType());
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
@@ -96,10 +92,49 @@ public class Notification {
                 .setContentTitle(notificationTitle)     // first line:  ongoing destination name
                 .setContentText(notificationText)       // second line: destination heading etc.
                 .setOnlyAlertOnce(true)                 // update without annoying the user
-                .setContentIntent(pendingNextWptIntent) // notification is clicked: go Next
-                .setStyle(bigStyle)                     // looks better on watches
-                .addAction(nextAction);                 // make "Next" action appear on phone
-        builder.extend(new NotificationCompat.WearableExtender().addAction(nextAction));  // make "Next" action appear on watch
-        nm.notify(destinationHash, builder.build()); // send the notification
+                .setStyle(bigStyle);                     // looks better on watches
+        return builder;
+    }
+
+    /// builds actions part of the notification
+    private class NextActionBuilder {
+        private int destinationHash; // "next wpt" intents are made unique by keying them with the destination hash
+
+        // results of the build
+        private PendingIntent pendingNextWptIntent;
+        private NotificationCompat.Action nextAction;
+
+        public NextActionBuilder(int destinationHash) { this.destinationHash = destinationHash; }
+
+        public PendingIntent getPendingNextWptIntent() { return pendingNextWptIntent; }
+
+        public NotificationCompat.Action getNextAction() { return nextAction; }
+
+
+        public NextActionBuilder build() {
+
+            // Explicit intent to wrap; clicking "-> [next wpt]" will advance the plan
+            Intent nextIntent = new Intent(mContext, NextWptActivity.class);
+            // pass the id so the notification can be cancelled
+            nextIntent.putExtra(NextWptActivity.NOTIFICATION_ID_EXTRA, destinationHash);
+            String nextActionName = "->";
+
+            if (mPlan.isActive()) {
+                int destinationIndex = mPlan.findNextNotPassed();  // current destination
+                nextIntent.putExtra(NextWptActivity.DESTINATION_PLAN_INDEX_EXTRA, destinationIndex);
+
+                Destination nextDestination = mPlan.getDestination(destinationIndex + 1);
+                nextActionName = "->" + (nextDestination != null ? cleanup(nextDestination.getID()) : "");
+            }
+
+            // Create pending intent and wrap our "Next" intent
+            pendingNextWptIntent = PendingIntent.getActivity(mContext, 1, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+            //see https://developer.android.com/training/wearables/notifications/creating.html
+            // make notifications compatible with all android versions
+            // NOTE: I was unable to figure out how to add a custom icon for the action
+            nextAction = new NotificationCompat.Action.Builder(R.drawable.plane_green, nextActionName, pendingNextWptIntent).build();
+            return this;
+        }
     }
 }

@@ -11,8 +11,6 @@ Redistribution and use in source and binary forms, with or without modification,
 */
 package com.ds.avare;
 
-import android.annotation.TargetApi;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.location.GpsStatus;
@@ -41,6 +39,7 @@ import com.ds.avare.instruments.Odometer;
 import com.ds.avare.instruments.UpTimer;
 import com.ds.avare.instruments.VNAV;
 import com.ds.avare.instruments.VSI;
+import com.ds.avare.message.Notifications;
 import com.ds.avare.network.ShapeFetcher;
 import com.ds.avare.network.TFRFetcher;
 import com.ds.avare.place.Area;
@@ -255,10 +254,6 @@ public class StorageService extends Service {
 
     // Timer for count up
     private UpTimer mUpTimer;
-
-    // current preferences
-    private Preferences mPref;
-
 
     // Last time location was updated
     private long mLastLocationUpdate;
@@ -524,7 +519,7 @@ public class StorageService extends Service {
                     if(mDestination != null) {
                         mDestination.updateTo(getGpsParams());
                     }
-                    
+
                     // Calculate course line deviation - this must be AFTER the destination update
                     // since the CDI uses the destination in its calculations
                     getCDI().calcDeviation(mDestination, getPlan());

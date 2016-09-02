@@ -31,10 +31,15 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ExpandableListView;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ds.avare.animation.AnimateButton;
@@ -46,7 +51,7 @@ import com.ds.avare.gps.GpsInterface;
 import com.ds.avare.gps.GpsParams;
 import com.ds.avare.instruments.FuelTimer;
 import com.ds.avare.instruments.UpTimer;
-import com.ds.avare.message.Notification;
+import com.ds.avare.message.Notifications;
 import com.ds.avare.place.Airport;
 import com.ds.avare.place.Boundaries;
 import com.ds.avare.place.Destination;
@@ -217,12 +222,19 @@ public class LocationActivity extends Activity implements Observer {
                     long s = 1000; // milliseconds in second
                     mDestination.updateTo(gps);
 
+                    boolean isDestinationInPlan =
+                            null != mService.getPlan()
+                                    && null != mService.getPlan().findDestinationByLocation(
+                                    mDestination.getLocation().getLongitude(),
+                                    mDestination.getLocation().getLatitude()) ;
                     if (mPref.isNotificationEnabled()
                             && !mDestination.getNoMoreNotifications()
+                            && ( ( isDestinationInPlan && mService.getPlan().isActive() )
+                            || !isDestinationInPlan )
                             && ((mDestination.getDistance() <  5.0 && timeBetweenUpdates >  60 * s)
                             &&  (mDestination.getDistance() < 10.0 && timeBetweenUpdates > 120 * s))
                             ) {
-                        Notification note = new Notification(getApplicationContext(), mService.getPlan(), gps);
+                        Notifications note = new Notifications(getApplicationContext(), mService.getPlan(), gps);
                         note.create(mDestination);
                         mDestination.setLastNotification(gps.getTime());
                     }
@@ -291,7 +303,8 @@ public class LocationActivity extends Activity implements Observer {
                     }
                     if(Helper.isSameGPSLocation(cdest.getLocation().getLongitude(),
                             cdest.getLocation().getLatitude(), lon, lat)) {
-                        return true;
+
+                         return true;
                     }
                 }
                 else if(dest.equals(cdest.getID())) {
@@ -652,9 +665,9 @@ public class LocationActivity extends Activity implements Observer {
                     mAlertDialogDestination.show();
 
                     /*
-                     * Show the popout
-                     * Now populate the pop out weather etc.
-                     */
+                    * Show the popout
+                    * Now populate the pop out weather etc.
+                    */
                     mAirportPressed = data.airport;
 
                 }
