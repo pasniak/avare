@@ -250,7 +250,7 @@ public class LocationActivity extends Activity implements Observer {
      */
     private boolean isSameDest(String dest) {
         if(mService != null) {
-            Destination cdest = mService.getDestination();
+            final Destination cdest = mService.getDestination();
             if(cdest != null) {
                 if(dest.contains("&")) {
                     /*
@@ -277,6 +277,39 @@ public class LocationActivity extends Activity implements Observer {
             }
         }
         return false;
+    }
+
+    private void renameTextBox(final Destination dest)
+    {
+        final EditText txtUrl = new EditText(this);
+
+        // the default text is the destination ID, selected so it can be replaced
+        txtUrl.setText(dest.getID(), TextView.BufferType.SPANNABLE);
+        txtUrl.selectAll();
+
+        AlertDialog.Builder b = new AlertDialog.Builder(this)
+                .setTitle("Rename Waypoint")
+                .setView(txtUrl)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String newName = txtUrl.getText().toString();
+                        renameDest(dest, newName);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                });
+        AlertDialog d = b.create();
+        // make sure the on-screen keyboard pops-up
+        //see http://stackoverflow.com/questions/3455235/when-using-alertdialog-builder-with-edittext-the-soft-keyboard-doesnt-pop
+        d.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        d.show();
+    }
+
+    private void renameDest(Destination d, String name)
+    {
+        if (d != null) d.setID(name);
     }
 
     /**

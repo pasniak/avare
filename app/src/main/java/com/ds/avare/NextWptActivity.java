@@ -1,33 +1,29 @@
 package com.ds.avare;
 
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 
-
+/** NextWptActivity activity handles clicking on Next button in a notification
+ *  and calls back the Service with advancePlanFrom
+ */
 public class NextWptActivity extends Activity {
 
+    public static final String NOTIFICATION_ID_EXTRA = "NotificationId";
+    public static final String DESTINATION_PLAN_INDEX_EXTRA = "DestinationPlanIndex";
+
     private StorageService mService;
-    int mNotificationId;
-    int mDestinationPlanIndex;
+    Intent mNextIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // cancel the previous notification
-        Intent originalIntent = getIntent();
-        mNotificationId = originalIntent.getIntExtra("NotificationId", 0);
-        mDestinationPlanIndex = originalIntent.getIntExtra("DestinationPlanIndex", 0);
-
-        NotificationManager nm =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.cancel(mNotificationId);
+        mNextIntent = getIntent();
 
         Intent newIntent = new Intent(this, StorageService.class);
         bindService(newIntent, mConnection, BIND_AUTO_CREATE);
@@ -66,7 +62,7 @@ public class NextWptActivity extends Activity {
             StorageService.LocalBinder binder = (StorageService.LocalBinder) service;
             mService = binder.getService();
 
-            mService.advancePlanFrom(mDestinationPlanIndex);
+            mService.advancePlanFrom(mNextIntent);
         }
 
         /*
