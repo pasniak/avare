@@ -1022,38 +1022,18 @@ public class WebAppPlanInterface implements Observer {
             String plann = "";
             String plan = "";
             if(null == mService) {
-            	Message m = mHandler.obtainMessage(MSG_ERROR, (Object)mContext.getString(R.string.WeatherPlan));
-            	mHandler.sendMessage(m);
-            	mHandler.sendEmptyMessage(MSG_NOTBUSY);
                 running = false;
                 return;
             }
 
             int num = mService.getPlan().getDestinationNumber();
-            if(num < 2) {
-                /*
-                 * Not a route.
-                 */
-            	Message m = mHandler.obtainMessage(MSG_ERROR, (Object)mContext.getString(R.string.WeatherPlan));
-            	mHandler.sendMessage(m);
-            	mHandler.sendEmptyMessage(MSG_NOTBUSY);
-                running = false;
-                return;
-            }
             for(int i = 0; i < num; i++) {
                 Location l = mService.getPlan().getDestination(i).getLocation();
                 planf += l.getLongitude() + "," + l.getLatitude() + ";";
                 plan += mService.getPlan().getDestination(i).getID() + "(" +
                         mService.getPlan().getDestination(i).getType() + ") ";
             }
-            if(planf.equals("")) {
-            	Message m = mHandler.obtainMessage(MSG_ERROR, (Object)mContext.getString(R.string.WeatherPlan));
-            	mHandler.sendMessage(m);
-            	mHandler.sendEmptyMessage(MSG_NOTBUSY);
-                running = false;
-                return;
-            }                
-            
+
             /*
              *  Get PIREP
              */
@@ -1082,7 +1062,7 @@ public class WebAppPlanInterface implements Observer {
                 for(int i = 0; i < outm.length; i++) {
                     String taf = WeatherHelper.formatWeatherHTML(outm[i], mPref.isWeatherTranslated());
                     String vals[] = taf.split(" ");
-                    taf = WeatherHelper.formatVisibilityHTML(WeatherHelper.formatTafHTML(WeatherHelper.formatWindsHTML(taf.replace(vals[0], ""), mPref.isWeatherTranslated()), mPref.isWeatherTranslated()));
+                    taf = WeatherHelper.formatVisibilityHTML(WeatherHelper.formatTafHTML(WeatherHelper.formatWindsHTML(WeatherHelper.formatWeatherHTML(taf.replace(vals[0], ""), mPref.isWeatherTranslated()), mPref.isWeatherTranslated()), mPref.isWeatherTranslated()));
                     Taf += "<b><font size='5' color='white'>" + vals[0] + "</b><br>";
                     Taf += "<font size='5' color='white'>" + taf + "<br></br>";
                 }

@@ -69,7 +69,7 @@ public class Notification {
         //see https://developer.android.com/training/wearables/notifications/creating.html
         // make notifications compatible with all android versions
         NotificationCompat.Action nextAction =
-                new NotificationCompat.Action.Builder(R.drawable.plan, actionName, pendingNextWptIntent).build();
+                new NotificationCompat.Action.Builder(R.drawable.aircraft, actionName, pendingNextWptIntent).build();
 
         NotificationManagerCompat nm = NotificationManagerCompat.from(mContext);
 
@@ -84,7 +84,7 @@ public class Notification {
                 .bigText(notificationText);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
-        builder.setSmallIcon(R.drawable.plan)           // use "plan" icon
+        builder.setSmallIcon(R.drawable.aircraft)       // show some icon in the notification
                 .setContentTitle(notificationTitle)     // first line:  ongoing destination name
                 .setContentText(notificationText)       // second line: destination heading etc.
                 .setOnlyAlertOnce(true)                 // update without annoying the user

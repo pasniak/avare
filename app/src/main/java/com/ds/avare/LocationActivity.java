@@ -27,19 +27,19 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
 import android.widget.ImageButton;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import com.ds.avare.adapters.PopoutAdapter;
 import com.ds.avare.animation.AnimateButton;
 import com.ds.avare.animation.TwoButton;
 import com.ds.avare.animation.TwoButton.TwoClickListener;
@@ -57,6 +57,7 @@ import com.ds.avare.storage.Preferences;
 import com.ds.avare.storage.StringPreference;
 import com.ds.avare.touch.GestureInterface;
 import com.ds.avare.touch.LongTouchDestination;
+import com.ds.avare.utils.DecoratedAlertDialogBuilder;
 import com.ds.avare.utils.Emergency;
 import com.ds.avare.utils.GenericCallback;
 import com.ds.avare.utils.Helper;
@@ -65,6 +66,7 @@ import com.ds.avare.utils.NetworkHelper;
 import com.ds.avare.utils.OptionButton;
 import com.ds.avare.utils.Tips;
 import com.ds.avare.views.LocationView;
+import com.ds.avare.webinfc.WebAppMapInterface;
 
 import java.io.File;
 import java.net.URI;
@@ -123,19 +125,13 @@ public class LocationActivity extends Activity implements Observer {
      */
     private AlertDialog mWarnDialog;
 
-    private Button mDestButton;
-    private Button mCenterButton;
+    private ImageButton mCenterButton;
     private Button mDrawClearButton;
     private TwoButton mTracksButton;
     private Button mHelpButton;
-    private Button mCrossButton;
     private Button mPrefButton;
-    private Button mPlanButton;
-    private Button mPlatesButton;
-    private Button mAfdButton;
     private Button mDownloadButton;
     private Button mMenuButton;
-    private RelativeLayout mDestLayout;
     private TwoButton mSimButton;
     private TwoButton mDrawButton;
     private Button mWebButton;
@@ -152,13 +148,13 @@ public class LocationActivity extends Activity implements Observer {
     private AnimateButton mAnimateDownload;
     private AnimateButton mAnimatePref;
     private String mAirportPressed;
+    private AlertDialog mAlertDialogDestination;
+    private WebAppMapInterface mInfc;
 
     private Button mPlanPrev;
     private ImageButton mPlanPause;
     private Button mPlanNext;
 
-
-    private ExpandableListView mListPopout;
 
     private TankObserver mTankObserver;
     private TimerObserver mTimerObserver;
@@ -331,7 +327,6 @@ public class LocationActivity extends Activity implements Observer {
         mToast.setText(getString(R.string.Searching) + " " + dst);
         mToast.show();
         mDestination.find();
-        mDestLayout.setVisibility(View.INVISIBLE);
     }
 
     /**
@@ -345,7 +340,6 @@ public class LocationActivity extends Activity implements Observer {
         mToast.setText(getString(R.string.Searching) + " " + dst);
         mToast.show();
         mDestination.find();
-        mDestLayout.setVisibility(View.INVISIBLE);
     }
 
     /*
@@ -356,17 +350,9 @@ public class LocationActivity extends Activity implements Observer {
     public void onBackPressed() {
 
         /*
-         * Back button hides some controls
-         */
-        if(mDestLayout.getVisibility() == View.VISIBLE) {
-            mDestLayout.setVisibility(View.INVISIBLE);
-            return;
-        }
-
-        /*
          * And may exit
          */
-        mAlertDialogExit = new AlertDialog.Builder(LocationActivity.this).create();
+        mAlertDialogExit = new DecoratedAlertDialogBuilder(LocationActivity.this).create();
         mAlertDialogExit.setTitle(getString(R.string.Exit));
         mAlertDialogExit.setCanceledOnTouchOutside(true);
         mAlertDialogExit.setCancelable(true);
@@ -450,6 +436,114 @@ public class LocationActivity extends Activity implements Observer {
         setContentView(view);
         mLocationView = (LocationView)view.findViewById(R.id.location);
 
+
+        /*
+         * Make a dialog to show destination info, when long pressed on it
+         */
+        DecoratedAlertDialogBuilder alert = new DecoratedAlertDialogBuilder(LocationActivity.this);
+        WebView wv = new WebView(LocationActivity.this);
+        wv.loadUrl("file:///android_asset/map.html");
+
+        mInfc = new WebAppMapInterface(LocationActivity.this, wv, new GenericCallback() {
+            /*
+             * (non-Javadoc)
+             * @see com.ds.avare.utils.GenericCallback#callback(java.lang.Object)
+             */
+            @Override
+            public Object callback(Object o, Object o1) {
+
+                String param = (String) o;
+                String airport = (String) o;
+
+                mAlertDialogDestination.dismiss();
+
+                if (null == mAirportPressed) {
+                    return null;
+                }
+                if (mService == null) {
+                    return null;
+                }
+
+                if (param.equals("A/FD")) {
+                    /*
+                     * A/FD
+                     */
+                    if(!mAirportPressed.contains("&")) {
+                        mService.setLastAfdAirport(mAirportPressed);
+                        ((MainActivity) LocationActivity.this.getParent()).showAfdTab();
+                    }
+                    mAirportPressed = null;
+                } else if (param.equals("Plate")) {
+                    /*
+                     * Plate
+                     */
+                    if(!mAirportPressed.contains("&")) {
+                        mService.setLastPlateAirport(mAirportPressed);
+                        mService.setLastPlateIndex(0);
+                        ((MainActivity) LocationActivity.this.getParent()).showPlatesTab();
+                    }
+                    mAirportPressed = null;
+                } else if (param.equals("+Plan")) {
+                    String type = Destination.BASE;
+                    if (mAirportPressed.contains("&")) {
+                        type = Destination.GPS;
+                    }
+                    planTo(mAirportPressed, type);
+                    mAirportPressed = null;
+                } else if (param.equals("->D")) {
+
+                    /*
+                     * On click, find destination that was pressed on in view
+                     * If button pressed was a destination go there, otherwise if none, then delete current dest
+                     */
+                    String dest = mAirportPressed;
+                    mAirportPressed = null;
+                    String type = Destination.BASE;
+                    if (dest.contains("&")) {
+                        type = Destination.GPS;
+                    }
+                    goTo(dest, type);
+                }
+                return null;
+            }
+        });
+        wv.addJavascriptInterface(mInfc, "AndroidMap");
+
+        wv.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+
+                return true;
+            }
+        });
+
+        wv.getSettings().setJavaScriptEnabled(true);
+        wv.getSettings().setBuiltInZoomControls(false);
+        // This is need on some old phones to get focus back to webview.
+        wv.setFocusable(true);
+        wv.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View arg0, MotionEvent arg1) {
+                arg0.performClick();
+                arg0.requestFocus();
+                return false;
+            }
+        });
+        // Do not let selecting text
+        wv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return true;
+            }
+        });
+        wv.setLongClickable(false);
+
+
+        alert.setView(wv);
+        mAlertDialogDestination = alert.create();
+        mAlertDialogDestination.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
         /*
          * To be notified of some action in the view
          */
@@ -485,7 +579,7 @@ public class LocationActivity extends Activity implements Observer {
                 if (GestureInterface.DOUBLE_TAP == nEvent) {
 
                     // Create the alert dialog and add the title.
-                    AlertDialog.Builder builder = new AlertDialog.Builder(LocationActivity.this);
+                    DecoratedAlertDialogBuilder builder = new DecoratedAlertDialogBuilder(LocationActivity.this);
                     builder.setTitle(R.string.SelectTextFieldTitle);
 
                     // The list of items to chose from. When a selection is made, save it off locally
@@ -533,8 +627,9 @@ public class LocationActivity extends Activity implements Observer {
                 }
 
                 if (GestureInterface.LONG_PRESS == event) {
+
                     /*
-                     * Show the popout if the coordinates clicked are in the plan
+                     * Show simplified popout if the coordinates clicked are in the plan
                      */
                     mAirportPressed = data.airport;
                     if (mAirportPressed.contains("&")) {
@@ -549,38 +644,16 @@ public class LocationActivity extends Activity implements Observer {
                                 return;  // so there is no further popups
                             }
                         }
-
-                        mPlatesButton.setEnabled(false);
-                        mAfdButton.setEnabled(false);
-                    } else {
-                        mPlatesButton.setEnabled(true);
-                        mAfdButton.setEnabled(true);
                     }
-                    mCrossButton.setText(data.airport + "\n" + data.info);
-                    mDestLayout.setVisibility(View.VISIBLE);
-
-                    // This allows unsetting the destination that is same as current
-                    if (isSameDest(data.airport)) {
-                        mDestButton.setText(getString(R.string.Delete));
-                    } else {
-                        mDestButton.setText(getString(R.string.ShortDestination));
-                    }
-
-                    /*
-                     * Now populate the pop out weather etc.
+                    /* show detailed waypoint WebbAppMapInterface window
                      */
-                    PopoutAdapter p = new PopoutAdapter(LocationActivity.this, data);
-                    mListPopout.setAdapter(p);
+                    mInfc.setData(data);
+                    mAlertDialogDestination.show();
+
                 }
             }
 
         });
-
-        /*
-         * black pop out
-         */
-        mListPopout = (ExpandableListView)view.findViewById(R.id.location_list_popout);
-
 
         mChartOption = (OptionButton)view.findViewById(R.id.location_spinner_chart);
         mChartOption.setCallback(new GenericCallback() {
@@ -618,10 +691,8 @@ public class LocationActivity extends Activity implements Observer {
                 return null;
             };
         });
-        mLayerOption.setSelectedValue(mPref.getLayerType());
-        mLocationView.setLayerType(mPref.getLayerType());
 
-        mCenterButton = (Button)view.findViewById(R.id.location_button_center);
+        mCenterButton = (ImageButton)view.findViewById(R.id.location_button_center);
         mCenterButton.getBackground().setAlpha(255);
         mCenterButton.setOnClickListener(new OnClickListener() {
 
@@ -637,7 +708,7 @@ public class LocationActivity extends Activity implements Observer {
                 // long press on center button sets track toggle
                 mPref.setTrackUp(!mPref.isTrackUp());
                 if(mPref.isTrackUp()) {
-                    mCenterButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
+                    mCenterButton.getBackground().setColorFilter(0xFF71BC78, PorterDuff.Mode.MULTIPLY);
                     mToast.setText(getString(R.string.TrackUp));
                 }
                 else {
@@ -650,17 +721,6 @@ public class LocationActivity extends Activity implements Observer {
             }
         });
 
-        mCrossButton = (Button)view.findViewById(R.id.location_button_cross);
-        mCrossButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                mDestLayout.setVisibility(View.INVISIBLE);
-            }
-
-        });
-
-        mDestLayout = (RelativeLayout)view.findViewById(R.id.location_popout_layout);
 
         mMenuButton = (Button)view.findViewById(R.id.location_button_menu);
         mMenuButton.getBackground().setAlpha(255);
@@ -685,56 +745,6 @@ public class LocationActivity extends Activity implements Observer {
 
         });
 
-        mPlatesButton = (Button)view.findViewById(R.id.location_button_plate);
-        mPlatesButton.getBackground().setAlpha(255);
-        mPlatesButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if (null != mAirportPressed) {
-                    if (mService != null) {
-                        mService.setLastPlateAirport(mAirportPressed);
-                        mService.setLastPlateIndex(0);
-                        ((MainActivity) LocationActivity.this.getParent()).showPlatesTab();
-                    }
-                    mAirportPressed = null;
-                }
-            }
-        });
-
-        mAfdButton = (Button)view.findViewById(R.id.location_button_afd);
-        mAfdButton.getBackground().setAlpha(255);
-        mAfdButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if(null != mAirportPressed) {
-                    if(mService != null) {
-                        mService.setLastAfdAirport(mAirportPressed);
-                        ((MainActivity) LocationActivity.this.getParent()).showAfdTab();
-                        mAirportPressed = null;
-                    }
-                }
-            }
-        });
-
-
-        mPlanButton = (Button)view.findViewById(R.id.location_button_plan);
-        mPlanButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if(null == mAirportPressed) {
-                	return;
-                }
-                String type = Destination.BASE;
-                if(mAirportPressed.contains("&")) {
-                    type = Destination.GPS;
-                }
-                planTo(mAirportPressed, type);
-                mAirportPressed = null;
-            }
-        });
 
         mDrawClearButton = (Button)view.findViewById(R.id.location_button_draw_clear);
         mDrawClearButton.setOnClickListener(new OnClickListener() {
@@ -779,7 +789,7 @@ public class LocationActivity extends Activity implements Observer {
 
             @Override
             public void onClick(View v) {
-                mSosDialog = new AlertDialog.Builder(LocationActivity.this).create();
+                mSosDialog = new DecoratedAlertDialogBuilder(LocationActivity.this).create();
                 mSosDialog.setTitle(getString(R.string.DeclareEmergency));
                 mSosDialog.setMessage(getString(R.string.DeclareEmergencyDetails));
                 mSosDialog.setCancelable(false);
@@ -809,40 +819,6 @@ public class LocationActivity extends Activity implements Observer {
 
             }
 
-        });
-
-        /*
-         * Dest button
-         */
-        mDestButton = (Button)view.findViewById(R.id.location_button_dest);
-        mDestButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                /*
-                 * On click, find destination that was pressed on in view
-                 */
-                if (null == mAirportPressed) {
-                    return;
-                }
-                /*
-                 * If button pressed was a destination go there, otherwise if none, then delete current dest
-                 */
-                String dest = mAirportPressed;
-                mAirportPressed = null;
-                if (mDestButton.getText().toString().equals(getString(R.string.Delete))) {
-                    mService.setDestination(null);
-                    mDestLayout.setVisibility(View.INVISIBLE);
-                    mLocationView.invalidate();
-                    return;
-                }
-                String type = Destination.BASE;
-                if (dest.contains("&")) {
-                    type = Destination.GPS;
-                }
-                goTo(dest, type);
-            }
         });
 
 
@@ -904,6 +880,9 @@ public class LocationActivity extends Activity implements Observer {
             }
 
         });
+        if(mPref.removeB1Map()) {
+            mDrawButton.setVisibility(View.INVISIBLE);
+        }
 
         /*
          * The tracking button handler. Enable/Disable the saving of track points
@@ -924,7 +903,7 @@ public class LocationActivity extends Activity implements Observer {
          * Throw this in case GPS is disabled.
          */
         if(Gps.isGpsDisabled(getApplicationContext(), mPref)) {
-            mGpsWarnDialog = new AlertDialog.Builder(LocationActivity.this).create();
+            mGpsWarnDialog = new DecoratedAlertDialogBuilder(LocationActivity.this).create();
             mGpsWarnDialog.setTitle(getString(R.string.GPSEnable));
             mGpsWarnDialog.setCancelable(false);
             mGpsWarnDialog.setCanceledOnTouchOutside(false);
@@ -953,7 +932,7 @@ public class LocationActivity extends Activity implements Observer {
          * Throw this in case GPS is disabled.
          */
         if(mPref.showTips()) {
-            mWarnDialog = new AlertDialog.Builder(LocationActivity.this).create();
+            mWarnDialog = new DecoratedAlertDialogBuilder(LocationActivity.this).create();
             mWarnDialog.setTitle(getString(R.string.Tip));
             mWarnDialog.setMessage(Tips.getTip(LocationActivity.this, mPref));
             mWarnDialog.setCancelable(false);
@@ -1134,7 +1113,7 @@ public class LocationActivity extends Activity implements Observer {
              */
             if(!mService.getDBResource().isPresent()) {
 
-                mAlertDialogDatabase = new AlertDialog.Builder(LocationActivity.this).create();
+                mAlertDialogDatabase = new DecoratedAlertDialogBuilder(LocationActivity.this).create();
                 mAlertDialogDatabase.setTitle(getString(R.string.download));
                 mAlertDialogDatabase.setCancelable(false);
                 mAlertDialogDatabase.setCanceledOnTouchOutside(false);
@@ -1212,6 +1191,10 @@ public class LocationActivity extends Activity implements Observer {
             // Tell the fuel tank timer we need to know when it runs out
             mService.getFuelTimer().addObserver(mTankObserver);
             mService.getUpTimer().addObserver(mTimerObserver);
+
+            mLayerOption.setSelectedValue(mPref.getLayerType());
+            mLocationView.setLayerType(mPref.getLayerType());
+
         }
 
         /* (non-Javadoc)
@@ -1238,7 +1221,7 @@ public class LocationActivity extends Activity implements Observer {
 					break;
 
 				case FuelTimer.SWITCH_TANK:
-					AlertDialog alertDialog = new AlertDialog.Builder(LocationActivity.this).create();
+					AlertDialog alertDialog = new DecoratedAlertDialogBuilder(LocationActivity.this).create();
 					alertDialog.setTitle(LocationActivity.this.getString(R.string.switchTanks));
 					alertDialog.setCancelable(false);
 					alertDialog.setCanceledOnTouchOutside(false);
@@ -1318,8 +1301,6 @@ public class LocationActivity extends Activity implements Observer {
         Intent intent = new Intent(this, StorageService.class);
         getApplicationContext().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
-        mDestLayout.setVisibility(View.INVISIBLE);
-
         // Set visibility of the plan buttons
         setPlanButtonVis();
 
@@ -1396,6 +1377,14 @@ public class LocationActivity extends Activity implements Observer {
         if(null != mAlertDialogExit) {
             try {
                 mAlertDialogExit.dismiss();
+            }
+            catch (Exception e) {
+            }
+        }
+
+        if(null != mAlertDialogDestination) {
+            try {
+                mAlertDialogDestination.dismiss();
             }
             catch (Exception e) {
             }
