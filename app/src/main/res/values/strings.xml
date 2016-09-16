@@ -558,4 +558,7 @@ Redistribution and use in source and binary forms, with or without modification,
     <string name="MaybeLater">&quot;Maybe Later&quot;</string>
     <string name="NeverAsk">&quot;Never Rate&quot;</string>
 
+    <string name="prefNotifications">&quot;Notifications&quot;</string>
+    <string name="prefNotificationsLabel">&quot;Get Notifications&quot;</string>
+    <string name="prefNotificationsSummary">&quot;Select to get waypoint notifications&quot;</string>
 </resources>
