@@ -549,4 +549,7 @@ Redistribution and use in source and binary forms, with or without modification,
     <string name="b3plate">Remove Button 3 in Plate (Restart Required)</string>
     <string name="UIConfiguration">UI Configuration</string>
 
+    <string name="prefNotifications">&quot;Notifications&quot;</string>
+    <string name="prefNotificationsLabel">&quot;Get Notifications&quot;</string>
+    <string name="prefNotificationsSummary">&quot;Select to get waypoint notifications&quot;</string>
 </resources>

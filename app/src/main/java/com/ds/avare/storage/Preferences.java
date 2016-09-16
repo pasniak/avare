@@ -1199,6 +1199,9 @@ public class Preferences {
         return mPref.getBoolean(mContext.getString(R.string.b1map), false);
     }
 
+    public boolean isNotificationEnabled() {
+        return mPref.getBoolean(mContext.getString(R.string.prefNotifications), false);
+    }
 
 }
 

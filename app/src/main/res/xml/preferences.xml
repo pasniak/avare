@@ -201,6 +201,11 @@ authors: zkhan, jlmcgraw
             android:key="@string/EarlyPassTimer"
             android:summary="@string/EarlyPassTimerSummary"
             android:title="@string/EarlyPassTimerLabel" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/prefNotifications"
+            android:summary="@string/prefNotificationsSummary"
+            android:title="@string/prefNotificationsLabel" />
     </PreferenceScreen>
         
     <PreferenceScreen 
