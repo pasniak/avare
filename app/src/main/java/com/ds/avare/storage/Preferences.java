@@ -1208,6 +1208,7 @@ public class Preferences {
     public void setRateAskCount(int set) {
         mPref.edit().putInt("rateAskLastCount", set).commit();
     }
+
     public boolean isNotificationEnabled() {
         return mPref.getBoolean(mContext.getString(R.string.prefNotifications), false);
     }
