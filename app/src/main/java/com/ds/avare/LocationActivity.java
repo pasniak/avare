@@ -51,6 +51,7 @@ import com.ds.avare.gps.GpsInterface;
 import com.ds.avare.gps.GpsParams;
 import com.ds.avare.instruments.FuelTimer;
 import com.ds.avare.instruments.UpTimer;
+import com.ds.avare.message.Notification;
 import com.ds.avare.place.Airport;
 import com.ds.avare.place.Boundaries;
 import com.ds.avare.place.Destination;
@@ -210,6 +211,28 @@ public class LocationActivity extends Activity implements Observer {
                 	 */
                 	blink();
                 }
+
+                if(mService != null && mDestination != null) {
+                /* independently of blink send distance/time based notifications
+                * */
+                    long lastNotification = mDestination.getLastNotification();
+
+                    GpsParams gps = mService.getGpsParams();
+                    long timeBetweenUpdates = gps.getTime() - lastNotification;
+                    long s = 1000; // milliseconds in second
+                    mDestination.updateTo(gps);
+
+                    if (mPref.isNotificationEnabled()
+                            && !mDestination.getNoMoreNotifications()
+                            && ((mDestination.getDistance() <  5.0 && timeBetweenUpdates >  60 * s)
+                            &&  (mDestination.getDistance() < 10.0 && timeBetweenUpdates > 120 * s))
+                            ) {
+                        Notification note = new Notification(getApplicationContext(), mService.getPlan(), gps);
+                        note.create(mDestination);
+                        mDestination.setLastNotification(gps.getTime());
+                    }
+                }
+
             }
         }
 

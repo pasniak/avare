@@ -39,7 +39,6 @@ import com.ds.avare.instruments.Odometer;
 import com.ds.avare.instruments.UpTimer;
 import com.ds.avare.instruments.VNAV;
 import com.ds.avare.instruments.VSI;
-import com.ds.avare.message.Notification;
 import com.ds.avare.network.ShapeFetcher;
 import com.ds.avare.network.TFRFetcher;
 import com.ds.avare.place.Area;
@@ -512,20 +511,7 @@ public class StorageService extends Service {
                     }
 
                     if(mDestination != null) {
-                        long lastNotification = mDestination.getLastNotification();
-
-                        GpsParams gps = getGpsParams();
-                        long timeBetweenUpdates = gps.getTime() - lastNotification;
-                        mDestination.updateTo(gps);
-
-                        if (mPref.isNotificationEnabled()
-                                && !mDestination.getNoMoreNotifications()
-                                && mDestination.getDistance() < 5.0
-                                && timeBetweenUpdates > 60*1000) {
-                            Notification note = new Notification(getApplicationContext(), getPlan(), gps);
-                            note.create(mDestination);
-                            mDestination.setLastNotification(gps.getTime());
-                        }
+                        mDestination.updateTo(getGpsParams());
                     }
 
                     // Calculate course line deviation - this must be AFTER the destination update
