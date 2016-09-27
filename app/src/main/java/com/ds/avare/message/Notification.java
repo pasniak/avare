@@ -17,11 +17,13 @@ import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
 import com.ds.avare.NextWptActivity;
 import com.ds.avare.R;
+import com.ds.avare.adapters.SearchAdapter;
 import com.ds.avare.gps.GpsParams;
 import com.ds.avare.place.Destination;
 import com.ds.avare.place.Plan;
@@ -69,7 +71,7 @@ public class Notification {
         //see https://developer.android.com/training/wearables/notifications/creating.html
         // make notifications compatible with all android versions
         NotificationCompat.Action nextAction =
-                new NotificationCompat.Action.Builder(R.drawable.plan, actionName, pendingNextWptIntent).build();
+                new NotificationCompat.Action.Builder(R.drawable.plane_green, actionName, pendingNextWptIntent).build();
 
         NotificationManagerCompat nm = NotificationManagerCompat.from(mContext);
 
@@ -83,8 +85,13 @@ public class Notification {
         NotificationCompat.BigTextStyle bigStyle = new NotificationCompat.BigTextStyle()
                 .bigText(notificationText);
 
+        String[] EMPTY_ARRAY = new String[0];
+        SearchAdapter bitmapAdapter = new SearchAdapter(mContext, EMPTY_ARRAY);
+        Bitmap notificationIcon = bitmapAdapter.getBitmap(d.getDbType());
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
-        builder.setSmallIcon(R.drawable.plan)           // use "plan" icon
+        builder.setSmallIcon(R.drawable.plane_green)
+                .setLargeIcon(notificationIcon)       // show some icon in the notification
                 .setContentTitle(notificationTitle)     // first line:  ongoing destination name
                 .setContentText(notificationText)       // second line: destination heading etc.
                 .setOnlyAlertOnce(true)                 // update without annoying the user
