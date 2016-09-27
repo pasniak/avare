@@ -56,7 +56,6 @@ import com.ds.avare.shapes.ShapeFileShape;
 import com.ds.avare.shapes.TFRShape;
 import com.ds.avare.shapes.TileMap;
 import com.ds.avare.storage.DataSource;
-import com.ds.avare.storage.Preferences;
 import com.ds.avare.userDefinedWaypoints.UDWMgr;
 import com.ds.avare.utils.BitmapHolder;
 import com.ds.avare.utils.InfoLines;
@@ -290,13 +289,7 @@ public class StorageService extends Service {
         }
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_NOT_STICKY;
-    }
-
-
-    /* (non-Javadoc)
+   /* (non-Javadoc)
      * @see android.app.Service#onBind(android.content.Intent)
      */
     @Override
