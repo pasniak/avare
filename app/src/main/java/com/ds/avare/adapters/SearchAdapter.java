@@ -13,6 +13,7 @@ package com.ds.avare.adapters;
 
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,90 +99,93 @@ public class SearchAdapter extends ArrayAdapter<String> {
         if(id != null && dbType != null && name != null) {
             textView.setText(id);
             textView2.setText(name);
-            
-            if(dbType.equals("TACAN")) {
-                imgView.setImageBitmap(mTACANBitmapHolder.getBitmap());
-            }
-            else if(dbType.equals("NDB/DME")) {
-                imgView.setImageBitmap(mNDBDMEBitmapHolder.getBitmap());
-            }
-            else if(
-                    dbType.equals("MARINE NDB") ||
-                    dbType.equals("UHF/NDB") ||
-                    dbType.equals("NDB")) {
-                imgView.setImageBitmap(mNDBBitmapHolder.getBitmap());
-            }
-            else if(dbType.equals("VOR/DME")) {
-                imgView.setImageBitmap(mVORDMEBitmapHolder.getBitmap());
-            }
-            else if(dbType.equals("VOT")) {
-                imgView.setImageBitmap(mVOTBitmapHolder.getBitmap());
-            }
-            else if(dbType.equals("VORTAC")) {
-                imgView.setImageBitmap(mVORTACBitmapHolder.getBitmap());
-            }
-            else if(dbType.equals("FAN MARKER")) {
-                imgView.setImageBitmap(mMakerBitmapHolder.getBitmap());
-            }
-            else if(dbType.equals("VOR")) {
-                imgView.setImageBitmap(mVORBitmapHolder.getBitmap());
-            }
-            else if(
-                    /*
-                     * These are placeholders for future addition for appropriate icons
-                     */
-                    dbType.equals("AIRPORT") ||
-                    dbType.equals("SEAPLANE BAS") ||
-                    dbType.equals("HELIPORT") ||
-                    dbType.equals("ULTRALIGHT") ||
-                    dbType.equals("GLIDERPORT") ||
-                    dbType.equals("BALLOONPORT")) {
-                imgView.setImageBitmap(mAirportBitmapHolder.getBitmap());
-            }
-            else if(
-                    /*
-                     * All strings direct from FAA database
-                     */
-                    dbType.equals("YREP-PT") ||
-                    dbType.equals("YRNAV-WP") ||
-                    dbType.equals("NARTCC-BDRY") ||
-                    dbType.equals("NAWY-INTXN") ||
-                    dbType.equals("NTURN-PT") ||
-                    dbType.equals("YWAYPOINT") ||
-                    dbType.equals("YMIL-REP-PT") ||
-                    dbType.equals("YCOORDN-FIX") ||
-                    dbType.equals("YMIL-WAYPOINT") ||
-                    dbType.equals("YNRS-WAYPOINT") ||
-                    dbType.equals("YVFR-WP") ||
-                    dbType.equals("YGPS-WP") ||
-                    dbType.equals("YCNF") ||
-                    dbType.equals("YRADAR") ||
-                    dbType.equals("NDME-FIX") ||
-                    dbType.equals("NNOT-ASSIGNED") ||
-                    dbType.equals("NDP-TRANS-XING") ||
-                    dbType.equals("NSTAR-TRANS-XIN") ||
-                    dbType.equals("NBRG-INTXN")) {
-                imgView.setImageBitmap(mFixBitmapHolder.getBitmap());
-            }
-            else if(dbType.equals(Destination.GPS)) {
-                imgView.setImageBitmap(mGeoBitmapHolder.getBitmap());
-            }
-            else if(dbType.equals(Destination.MAPS)) {
-                imgView.setImageBitmap(mMapBitmapHolder.getBitmap());
-            }
-            else if(dbType.equals(Destination.UDW)) {
-                imgView.setImageBitmap(mUDWBitmapHolder.getBitmap());
-            }
-            else {
-                /*
-                 * Unrecognized, dont show any but take space
-                 */
-                imgView.setImageBitmap(mNoBitmapHolder.getBitmap());                    
-            }
+            imgView.setImageBitmap(getBitmap(dbType));
         }
 
         return rowView;
     }
 
-    
+    public Bitmap getBitmap(String dbType) {
+        if(dbType.equals("TACAN")) {
+            return mTACANBitmapHolder.getBitmap();
+        }
+        else if(dbType.equals("NDB/DME")) {
+            return mNDBDMEBitmapHolder.getBitmap();
+        }
+        else if(
+                dbType.equals("MARINE NDB") ||
+                dbType.equals("UHF/NDB") ||
+                dbType.equals("NDB")) {
+            return mNDBBitmapHolder.getBitmap();
+        }
+        else if(dbType.equals("VOR/DME")) {
+            return mVORDMEBitmapHolder.getBitmap();
+        }
+        else if(dbType.equals("VOT")) {
+            return mVOTBitmapHolder.getBitmap();
+        }
+        else if(dbType.equals("VORTAC")) {
+            return mVORTACBitmapHolder.getBitmap();
+        }
+        else if(dbType.equals("FAN MARKER")) {
+            return mMakerBitmapHolder.getBitmap();
+        }
+        else if(dbType.equals("VOR")) {
+            return mVORBitmapHolder.getBitmap();
+        }
+        else if(
+                /*
+                 * These are placeholders for future addition for appropriate icons
+                 */
+                dbType.equals("AIRPORT") ||
+                dbType.equals("SEAPLANE BAS") ||
+                dbType.equals("HELIPORT") ||
+                dbType.equals("ULTRALIGHT") ||
+                dbType.equals("GLIDERPORT") ||
+                dbType.equals("BALLOONPORT")) {
+            return mAirportBitmapHolder.getBitmap();
+        }
+        else if(
+                /*
+                 * All strings direct from FAA database
+                 */
+                dbType.equals("YREP-PT") ||
+                dbType.equals("YRNAV-WP") ||
+                dbType.equals("NARTCC-BDRY") ||
+                dbType.equals("NAWY-INTXN") ||
+                dbType.equals("NTURN-PT") ||
+                dbType.equals("YWAYPOINT") ||
+                dbType.equals("YMIL-REP-PT") ||
+                dbType.equals("YCOORDN-FIX") ||
+                dbType.equals("YMIL-WAYPOINT") ||
+                dbType.equals("YNRS-WAYPOINT") ||
+                dbType.equals("YVFR-WP") ||
+                dbType.equals("YGPS-WP") ||
+                dbType.equals("YCNF") ||
+                dbType.equals("YRADAR") ||
+                dbType.equals("NDME-FIX") ||
+                dbType.equals("NNOT-ASSIGNED") ||
+                dbType.equals("NDP-TRANS-XING") ||
+                dbType.equals("NSTAR-TRANS-XIN") ||
+                dbType.equals("NBRG-INTXN")) {
+            return mFixBitmapHolder.getBitmap();
+        }
+        else if(dbType.equals(Destination.GPS)) {
+            return mGeoBitmapHolder.getBitmap();
+        }
+        else if(dbType.equals(Destination.MAPS)) {
+            return mMapBitmapHolder.getBitmap();
+        }
+        else if(dbType.equals(Destination.UDW)) {
+            return mUDWBitmapHolder.getBitmap();
+        }
+        else {
+            /*
+             * Unrecognized, dont show any but take space
+             */
+            return mNoBitmapHolder.getBitmap();
+        }
+    }
+
+
 }
