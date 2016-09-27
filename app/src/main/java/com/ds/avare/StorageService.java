@@ -55,7 +55,6 @@ import com.ds.avare.shapes.ShapeFileShape;
 import com.ds.avare.shapes.TFRShape;
 import com.ds.avare.shapes.TileMap;
 import com.ds.avare.storage.DataSource;
-import com.ds.avare.storage.Preferences;
 import com.ds.avare.userDefinedWaypoints.UDWMgr;
 import com.ds.avare.utils.BitmapHolder;
 import com.ds.avare.utils.InfoLines;
@@ -254,9 +253,6 @@ public class StorageService extends Service {
     // Timer for count up
     private UpTimer mUpTimer;
 
-    // current preferences
-    private Preferences mPref;
-
     public String getOverrideListName() {
         return mOverrideListName;
     }
@@ -283,13 +279,7 @@ public class StorageService extends Service {
         }
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_NOT_STICKY;
-    }
-
-
-    /* (non-Javadoc)
+   /* (non-Javadoc)
      * @see android.app.Service#onBind(android.content.Intent)
      */
     @Override
@@ -417,8 +407,6 @@ public class StorageService extends Service {
          * Monitor TFR every hour.
          */
         mTimer.scheduleAtFixedRate(gpsTime, 0, 60 * 1000);
-
-        mPref = new Preferences(getApplicationContext());
 
         /*
          * Start GPS, and call all activities registered to listen to GPS
