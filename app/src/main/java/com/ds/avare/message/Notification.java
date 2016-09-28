@@ -13,7 +13,6 @@ Redistribution and use in source and binary forms, with or without modification,
 
 package com.ds.avare.message;
 
-import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -37,8 +36,12 @@ public class Notification {
     Plan mPlan;
     GpsParams mGps;
 
+    SearchAdapter mBitmapSearchAdapterNoId;
+
     public Notification (Context context, Plan plan, GpsParams gps) {
         mContext = context; mPlan = plan; mGps = gps;
+        String[] EMPTY_ARRAY = new String[0];
+        mBitmapSearchAdapterNoId = new SearchAdapter(mContext, EMPTY_ARRAY);
     }
 
     /** Create a notification with the destination distance, angular position
@@ -46,7 +49,6 @@ public class Notification {
      *
      * @param d destination which will be featured in the notification
      */
-    @TargetApi(19)
     public void create(Destination d) {
         int destinationHash = d.getID().hashCode();
 
@@ -54,14 +56,14 @@ public class Notification {
         Intent nextIntent = new Intent(mContext, NextWptActivity.class);
         // pass the id so the notification can be cancelled
         nextIntent.putExtra(NextWptActivity.NOTIFICATION_ID_EXTRA, destinationHash);
-        String actionName = "Next";
+        String nextActionName = "Next";
 
         if (mPlan.isActive()) {
             int destinationIndex = mPlan.findNextNotPassed();  // current destination
             nextIntent.putExtra(NextWptActivity.DESTINATION_PLAN_INDEX_EXTRA, destinationIndex);
 
             Destination nextDestination = mPlan.getDestination(destinationIndex + 1);
-            actionName = "Next" + (nextDestination != null ? "("+ nextDestination.getID()+")" : "");
+            nextActionName = "Next" + (nextDestination != null ? "("+ nextDestination.getID()+")" : "");
         }
 
         // Create pending intent and wrap our "Next" intent
@@ -70,8 +72,9 @@ public class Notification {
 
         //see https://developer.android.com/training/wearables/notifications/creating.html
         // make notifications compatible with all android versions
+        // NOTE: I was unable to figure out how to add a custom icon for the action
         NotificationCompat.Action nextAction =
-                new NotificationCompat.Action.Builder(R.drawable.plane_green, actionName, pendingNextWptIntent).build();
+                new NotificationCompat.Action.Builder(R.drawable.plane_green, nextActionName, pendingNextWptIntent).build();
 
         NotificationManagerCompat nm = NotificationManagerCompat.from(mContext);
 
@@ -85,9 +88,7 @@ public class Notification {
         NotificationCompat.BigTextStyle bigStyle = new NotificationCompat.BigTextStyle()
                 .bigText(notificationText);
 
-        String[] EMPTY_ARRAY = new String[0];
-        SearchAdapter bitmapAdapter = new SearchAdapter(mContext, EMPTY_ARRAY);
-        Bitmap notificationIcon = bitmapAdapter.getBitmap(d.getDbType());
+        Bitmap notificationIcon = mBitmapSearchAdapterNoId.getBitmap(d.getDbType());
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
         builder.setSmallIcon(R.drawable.plane_green)
@@ -97,9 +98,8 @@ public class Notification {
                 .setOnlyAlertOnce(true)                 // update without annoying the user
                 .setContentIntent(pendingNextWptIntent) // notification is clicked: go Next
                 .setStyle(bigStyle)                     // looks better on watches
-                .addAction(nextAction);                 // make "Next" action appear on watches
-        builder.extend(new NotificationCompat.WearableExtender().addAction(nextAction));
+                .addAction(nextAction);                 // make "Next" action appear on phone
+        builder.extend(new NotificationCompat.WearableExtender().addAction(nextAction));  // make "Next" action appear on watch
         nm.notify(destinationHash, builder.build()); // send the notification
     }
-
 }
