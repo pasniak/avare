@@ -36,9 +36,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
 import android.widget.ImageButton;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -674,21 +672,8 @@ public class LocationActivity extends Activity implements Observer {
                             }
                         }
 
-                        mPlatesButton.setEnabled(false);
-                        mAfdButton.setEnabled(false);
-                    } else {
-                        mPlatesButton.setEnabled(true);
-                        mAfdButton.setEnabled(true);
                     }
-                    mCrossButton.setText(data.airport + "\n" + data.info);
-                    mDestLayout.setVisibility(View.VISIBLE);
 
-                    // This allows unsetting the destination that is same as current
-                    if (isSameDest(data.airport)) {
-                        mDestButton.setText(getString(R.string.Delete));
-                    } else {
-                        mDestButton.setText(getString(R.string.ShortDestination));
-                    }
 
                     /*
                      * Now populate the pop out weather etc.
