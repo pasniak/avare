@@ -31,13 +31,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ds.avare.animation.AnimateButton;
@@ -313,39 +310,6 @@ public class LocationActivity extends Activity implements Observer {
         return false;
     }
 
-    private void renameTextBox(final Destination dest)
-    {
-        final EditText txtUrl = new EditText(this);
-
-        // the default text is the destination ID, selected so it can be replaced
-        txtUrl.setText(dest.getID(), TextView.BufferType.SPANNABLE);
-        txtUrl.selectAll();
-
-        AlertDialog.Builder b = new AlertDialog.Builder(this)
-                .setTitle("Rename Waypoint")
-                .setView(txtUrl)
-                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        String newName = txtUrl.getText().toString();
-                        renameDest(dest, newName);
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                    }
-                });
-        AlertDialog d = b.create();
-        // make sure the on-screen keyboard pops-up
-        //see http://stackoverflow.com/questions/3455235/when-using-alertdialog-builder-with-edittext-the-soft-keyboard-doesnt-pop
-        d.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-        d.show();
-    }
-
-    private void renameDest(Destination d, String name)
-    {
-        if (d != null) d.setID(name);
-    }
-
     /**
      *
      * @param dst
@@ -483,7 +447,8 @@ public class LocationActivity extends Activity implements Observer {
             public Object callback(Object o, Object o1) {
 
                 String param = (String) o;
-                String airport = (String) o;
+                String[] parts = param.split("`");
+                String action = parts[0], newName = parts.length>1 ? parts[1] : "";
 
                 mAlertDialogDestination.dismiss();
 
@@ -494,7 +459,7 @@ public class LocationActivity extends Activity implements Observer {
                     return null;
                 }
 
-                if (param.equals("A/FD")) {
+                if (action.equals("A/FD")) {
                     /*
                      * A/FD
                      */
@@ -503,7 +468,7 @@ public class LocationActivity extends Activity implements Observer {
                         ((MainActivity) LocationActivity.this.getParent()).showAfdTab();
                     }
                     mAirportPressed = null;
-                } else if (param.equals("Plate")) {
+                } else if (action.equals("Plate")) {
                     /*
                      * Plate
                      */
@@ -513,14 +478,19 @@ public class LocationActivity extends Activity implements Observer {
                         ((MainActivity) LocationActivity.this.getParent()).showPlatesTab();
                     }
                     mAirportPressed = null;
-                } else if (param.equals("+Plan")) {
-                    String type = Destination.BASE;
+                } else if (action.equals("+Plan")) {
+                    /*
+                     * +Plan
+                     */
                     if (mAirportPressed.contains("&")) {
-                        type = Destination.GPS;
+                        String decoratedName = (newName.isEmpty() && newName != mAirportPressed)
+                                              ? mAirportPressed : newName + "@" + mAirportPressed;
+                        planTo(decoratedName, Destination.GPS);
+                    } else {
+                        planTo(mAirportPressed, Destination.BASE);
                     }
-                    planTo(mAirportPressed, type);
                     mAirportPressed = null;
-                } else if (param.equals("->D")) {
+                } else if (action.equals("->D")) {
 
                     /*
                      * On click, find destination that was pressed on in view
@@ -533,6 +503,8 @@ public class LocationActivity extends Activity implements Observer {
                         type = Destination.GPS;
                     }
                     goTo(dest, type);
+                } else if (action.equals("Rename")) {
+                    rename(newName);
                 }
                 return null;
             }
