@@ -68,11 +68,13 @@ public class Notification {
         NotificationManagerCompat.from(mContext).notify(destinationHash, builder.build()); // send the notification
     }
 
+    String cleanup(String name) { return name.replaceAll("@.*",""); } // remove @ character & coordinates
+
     /// builds the visual part of a notification
     public NotificationCompat.Builder buildNotificationVisuals(Destination d) {
 
         //contents of the notification; the same on the phone and Wear device
-        String notificationTitle = d.getID();
+        String notificationTitle = cleanup(d.getID());
         int oClock = com.ds.avare.utils.Helper.getOClockPosition(mGps.getBearing(), d.getBearing());
         String notificationText = d.toString().trim() + " @" + Integer.toString(oClock);
 
@@ -111,18 +113,18 @@ public class Notification {
 
         public NextActionBuilder build() {
 
-            // Explicit intent to wrap; clicking "Next [next wpt]" will advance the plan
+            // Explicit intent to wrap; clicking "-> [next wpt]" will advance the plan
             Intent nextIntent = new Intent(mContext, NextWptActivity.class);
             // pass the id so the notification can be cancelled
             nextIntent.putExtra(NextWptActivity.NOTIFICATION_ID_EXTRA, destinationHash);
-            String nextActionName = "Next";
+            String nextActionName = "->";
 
             if (mPlan.isActive()) {
                 int destinationIndex = mPlan.findNextNotPassed();  // current destination
                 nextIntent.putExtra(NextWptActivity.DESTINATION_PLAN_INDEX_EXTRA, destinationIndex);
 
                 Destination nextDestination = mPlan.getDestination(destinationIndex + 1);
-                nextActionName = "Next" + (nextDestination != null ? " ("+ nextDestination.getID()+")" : "");
+                nextActionName = "->" + (nextDestination != null ? cleanup(nextDestination.getID()) : "");
             }
 
             // Create pending intent and wrap our "Next" intent
