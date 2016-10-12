@@ -1021,6 +1021,26 @@ public class LocationActivity extends Activity implements Observer {
         }
     }
 
+    /** finds the pressed destination in the plan and renames it to the @newName */
+    public void rename(String newName) {
+        if (!newName.isEmpty()
+                && mAirportPressed!=null
+                && !newName.equals(mAirportPressed)
+                && mAirportPressed.contains("&"))
+        {
+            String[] latLon = mAirportPressed.split("&");
+            double lat = Double.parseDouble(latLon[0]),
+                    lon = Double.parseDouble(latLon[1]);
+            Plan plan = mService.getPlan();
+            if (plan != null) {
+                Destination destToRename = plan.findDestinationByLocation(lon, lat);
+                if (destToRename != null) {
+                    destToRename.setID(newName+"@"+mAirportPressed);
+                }
+            }
+        }
+    }
+
     private void setTrackState(boolean bState)
     {
         URI fileURI = mService.setTracks(bState);

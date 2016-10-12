@@ -39,7 +39,6 @@ import com.ds.avare.instruments.Odometer;
 import com.ds.avare.instruments.UpTimer;
 import com.ds.avare.instruments.VNAV;
 import com.ds.avare.instruments.VSI;
-import com.ds.avare.message.Notifications;
 import com.ds.avare.network.ShapeFetcher;
 import com.ds.avare.network.TFRFetcher;
 import com.ds.avare.place.Area;
@@ -259,9 +258,6 @@ public class StorageService extends Service {
     // Last time location was updated
     private long mLastLocationUpdate;
 
-    // current preferences
-    private Preferences mPref;
-
 
     public String getOverrideListName() {
         return mOverrideListName;
@@ -419,8 +415,6 @@ public class StorageService extends Service {
          */
         mTimer.scheduleAtFixedRate(gpsTime, 0, 60 * 1000);
 
-
-        mPref = new Preferences(getApplicationContext());
 
         /*
          * Start GPS, and call all activities registered to listen to GPS
