@@ -415,7 +415,6 @@ public class StorageService extends Service {
          */
         mTimer.scheduleAtFixedRate(gpsTime, 0, 60 * 1000);
 
-
         /*
          * Start GPS, and call all activities registered to listen to GPS
          */
