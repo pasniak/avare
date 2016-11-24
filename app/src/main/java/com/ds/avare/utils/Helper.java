@@ -381,31 +381,30 @@ public class Helper {
         return val.replaceFirst("^0+(?!$)", ""); 
     }
 
-/***
+    private static final int MAX_FIELD_SIZE_IN_CHARS = 5;
+    private static final String SPACES = "     ";
+
+    /***
  * Center the input string into a new string that is of the indicated size
  * @param input string to center
- * @param size length of the output string
  * @return
  */
-    public static String centerString(String input, int size) {
-    	if (input.length() > size) {	// if input is already bigger than output
+    public static String centerString(String input) {
+    	if (input.length() > MAX_FIELD_SIZE_IN_CHARS) {	// if input is already bigger than output
     		return input;				// just return
     	}
 
-    	// Build an empty string of the desired size
-    	char[] spaces = new char[size + 1];
-    	for(int idx = 0; idx < spaces.length - 1; idx++) {
-    		spaces[idx] = ' ';
-    	}
-    	String strEmpty = new String(spaces);
-
     	// Calculate how much pre and post padding to use
-    	int diff = size - input.length();
+    	int diff = MAX_FIELD_SIZE_IN_CHARS - input.length();
     	int trailing = diff / 2;
     	int leading = trailing + diff % 2;
 
     	// return with the new string properly centered
-    	return strEmpty.substring(0,  leading) + input + strEmpty.substring(0,  trailing);
+        return new StringBuilder(MAX_FIELD_SIZE_IN_CHARS)
+            .append(SPACES.substring(0, leading))
+            .append(input)
+            .append(SPACES.substring(0, trailing))
+            .toString();
     }
     /**
      * 

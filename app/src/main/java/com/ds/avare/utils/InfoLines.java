@@ -117,7 +117,6 @@ public class InfoLines {
     static final double TITLE_TO_TEXT_RATIO = 2.5;
 
     static final int MAX_INFO_ROWS = 2;
-    static final int MAX_FIELD_SIZE_IN_CHARS = 5;
 
     // Return how much in the Y direction we take up
     public float getHeight() {
@@ -593,6 +592,9 @@ public class InfoLines {
         }
     }
 
+    final private static Calendar LOCAL_TIME = Calendar.getInstance();
+    final private static Calendar UTC_TIME = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
     /***
      * Return a string that represents the value of the desired field
      * 
@@ -611,7 +613,7 @@ public class InfoLines {
         	// Local time is special, get the identifier of the local
         	// timezone
             if (aField == ID_FLD_LT) {
-                return Calendar.getInstance().getTimeZone().getID();
+                return LOCAL_TIME.getTimeZone().getID();
             }
 
             // Ensure the index is valid in our array and return 
@@ -639,7 +641,7 @@ public class InfoLines {
             if (mService != null && mService.getGpsParams() != null) {
                 return Helper.centerString(String.format(Locale.getDefault(),
                         "%.0f%s", mService.getGpsParams().getSpeed(),
-                        Preferences.speedConversionUnit), MAX_FIELD_SIZE_IN_CHARS);
+                        Preferences.speedConversionUnit));
             }
             break;
         }
@@ -691,7 +693,7 @@ public class InfoLines {
                                                     // than 5 chars
                         name = name.substring(0, 4);
                     }
-                    return Helper.centerString(name, MAX_FIELD_SIZE_IN_CHARS);
+                    return Helper.centerString(name);
                 }
             }
             break;
@@ -708,8 +710,8 @@ public class InfoLines {
                             Locale.getDefault(), 
                             fmtString, // (distance) + "%s", // "%.0f%s", 
                             distance,
-                            Preferences.distanceConversionUnit),
-                            MAX_FIELD_SIZE_IN_CHARS);
+                            Preferences.distanceConversionUnit)
+                            );
                 }
             }
             break;
@@ -736,23 +738,20 @@ public class InfoLines {
         }
 
         case ID_FLD_LT: {
-            Calendar localTime = Calendar.getInstance();
             return String.format(Locale.getDefault(), "%02d:%02d",
-                    localTime.get(Calendar.HOUR_OF_DAY),
-                    localTime.get(Calendar.MINUTE));
+                    LOCAL_TIME.get(Calendar.HOUR_OF_DAY),
+                    LOCAL_TIME.get(Calendar.MINUTE));
         }
 
         case ID_FLD_GMT: {
-            Calendar localTime = Calendar.getInstance();
-            localTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             return String.format(Locale.getDefault(), "%02d:%02d",
-                    localTime.get(Calendar.HOUR_OF_DAY),
-                    localTime.get(Calendar.MINUTE));
+                    UTC_TIME.get(Calendar.HOUR_OF_DAY),
+                    UTC_TIME.get(Calendar.MINUTE));
         }
 
         case ID_FLD_MSL: {
             return Helper.centerString(Helper
-                    .calculateAltitudeFromMSL(mAltitude), MAX_FIELD_SIZE_IN_CHARS);
+                    .calculateAltitudeFromMSL(mAltitude));
         }
 
         // If we have a destination set that is a BASE,
