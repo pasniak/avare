@@ -64,6 +64,7 @@ import com.ds.avare.utils.Mutex;
 import com.ds.avare.utils.NavComments;
 import com.ds.avare.utils.ShadowedText;
 import com.ds.avare.utils.TimeConstants;
+import com.ds.avare.voice.ReadText;
 import com.ds.avare.weather.AdsbWeatherCache;
 import com.ds.avare.weather.InternetWeatherCache;
 
