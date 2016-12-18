@@ -146,6 +146,11 @@ authors: zkhan, jlmcgraw
             android:key="@string/prefTip"
             android:summary="@string/prefTipSummary"
             android:title="@string/prefTipLabel" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/prefTalkEnabled"
+            android:summary="@string/TalkEnabledSummary"
+            android:title="@string/TalkEnabled" />
     </PreferenceScreen>
 
     <PreferenceScreen 

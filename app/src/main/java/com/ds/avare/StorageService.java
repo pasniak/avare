@@ -593,6 +593,9 @@ public class StorageService extends Service {
             }
         };
         mOrientation = new Orientation(this, ointf);
+
+        // Initialize text-to-speech. This is an asynchronous operation.
+        ReadText.initializeTts(this);
     }
         
     /* (non-Javadoc)
@@ -623,6 +626,9 @@ public class StorageService extends Service {
         if(mOrientation != null) {
             mOrientation.stop();
         }
+
+
+        ReadText.releaseTts();
 
         super.onDestroy();
         
@@ -709,6 +715,10 @@ public class StorageService extends Service {
         if(null != mPlan){
         	mPlan.makeInactive();
         }
+
+        if (destination != null) {
+            ReadText.destinationSetTo(destination.getID());
+        }
     }
 
     /**
@@ -722,6 +732,8 @@ public class StorageService extends Service {
         // TODO: I don't like this here, it should be pushed into the PLAN itself
         if(null != destination) {
         	mNavComments.setRight(destination.getCmt());
+
+            ReadText.navigateTo(destination.getID(), destination.getBearing());
         }
     }
 

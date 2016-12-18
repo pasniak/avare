@@ -1222,6 +1222,11 @@ public class Preferences {
     public boolean isVerticalPfd() {
         return mPref.getBoolean(mContext.getString(R.string.VerticalPfd), false);
     }
+
+    public boolean isTalkEnabled() {
+        return mPref.getBoolean(mContext.getString(R.string.prefTalkEnabled), false);
+    }
+
 }
 
 

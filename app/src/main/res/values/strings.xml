@@ -570,4 +570,16 @@ Redistribution and use in source and binary forms, with or without modification,
     <string name="WindsAloftCeiling">&quot;Winds/Temp. Aloft Filter&quot;</string>
     <string name="WindsAloftCeilingSummary">&quot;Select Winds/Temperature Aloft upper limit altitude (thousands of feet)&quot;</string>
 
+    <string name="no_tts_available_message">No text-to-speech language available</string>
+    <string name="initializing_tts">Initializing TTS…</string>
+    <string name="tts_no_tts">Don’t speak</string>
+    <string name="select_locale_title">Select language</string>
+
+    <string name="prefTalkEnabled">TalkEnabled</string>
+    <string name="TalkEnabled">&quot;Enable Talk&quot;</string>
+    <string name="TalkEnabledSummary">&quot;Select for Avare to announce plan turns and fuel tank changes (Restart Required)&quot;</string>
+
+    <string name="ttsFly">Fly heading</string>
+    <string name="ttsDestinationSet">Destination set to</string>
+    <string name="ttsNavigateTo">Navigate to</string>
 </resources>
