@@ -247,20 +247,34 @@ public class ReadText {
         }
     }
 
-    static private String flyHeading(double heading) {
-        // add spaces to read separate digits
-        String headingText = String.format(Locale.getDefault(), "%03d", (int)heading)
-                .replaceAll("(.)", "$1 ");
-        return  mContext.get().getString(R.string.ttsFly) + " " + ICAOPhoneticAlphabet.convert(headingText);
+    static private String sayHeading(String heading) {
+        String headingText = heading.split("\\.", 2)[0] // cut off digits after decimal pt
+                .replaceAll("(.)", "$1 "); // add spaces to read separate digits
+        return ICAOPhoneticAlphabet.convert(headingText);
     }
 
+    static public void navigateToLast(String destination, String heading, int patternAlt) {
+        if (!mPref.isTalkEnabled()) return;
+        if (destination == null) return;
 
-    static public void navigateTo(String destination, double heading) {
+        String announce = String.format(
+                mContext.get().getString(R.string.ttsDescendTo),
+                ICAOPhoneticAlphabet.convert(destination),
+                sayHeading(heading),
+                Integer.toString(patternAlt));
+
+        ReadText.textToSpeech(announce);
+    }
+
+    static public void navigateTo(String destination, String heading) {
         if (!mPref.isTalkEnabled()) return;
         if (destination==null) return;
 
-        String announce =  mContext.get().getString(R.string.ttsNavigateTo) + " " + ICAOPhoneticAlphabet.convert(destination) + ", ";
-        announce += flyHeading(heading);
+        String announce = String.format(
+                mContext.get().getString(R.string.ttsNavigateTo),
+                ICAOPhoneticAlphabet.convert(destination),
+                sayHeading(heading));
+
         ReadText.textToSpeech(announce);
     }
 
@@ -268,7 +282,10 @@ public class ReadText {
         if (!mPref.isTalkEnabled()) return;
         if (destination==null) return;
 
-        String announce =  mContext.get().getString(R.string.ttsDestinationSet) + " " + ICAOPhoneticAlphabet.convert(destination)+ ", ";
+        String announce = String.format(
+                mContext.get().getString(R.string.ttsDestinationSet),
+                ICAOPhoneticAlphabet.convert(destination));
+
         ReadText.textToSpeech(announce);
     }
 }

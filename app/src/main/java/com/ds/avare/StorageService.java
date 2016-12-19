@@ -734,7 +734,15 @@ public class StorageService extends Service {
         if(null != destination) {
         	mNavComments.setRight(destination.getCmt());
 
-            ReadText.navigateTo(destination.getID(), destination.getBearing());
+
+            // last point before the final destination
+            Plan p = getPlan();
+            if (p != null && p.findNextNotPassed() == p.getDestinationNumber() - 1) {
+                int patternAltitude = (int)destination.getPatternAltitude();
+                ReadText.navigateToLast(destination.getID(), destination.getCourse(), patternAltitude);
+            }
+            else
+                ReadText.navigateTo(destination.getID(), destination.getCourse());
         }
     }
 

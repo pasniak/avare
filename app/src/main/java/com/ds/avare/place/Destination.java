@@ -894,7 +894,26 @@ public class Destination extends Observable {
         
         return String.format(Locale.getDefault(), "%+06.2f", -fpr);
     }
-    
+
+    public double getPatternAltitude() {
+        if(mDestType.equals(BASE)) {
+            try {
+                String pa = mParams.get("Pattern Altitude");
+                return Double.parseDouble(pa);
+            }
+            catch(Exception e) {
+
+            }
+        }
+        else {
+            /*
+             * Only for airport
+             */
+            return 0;
+        }
+        return 0;
+    }
+
     public double getAltitudeAboveDest(GpsParams gpsParams) {
         double height = gpsParams.getAltitude();
         if(mDestType.equals(BASE)) {

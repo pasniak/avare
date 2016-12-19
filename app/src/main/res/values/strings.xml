@@ -579,7 +579,8 @@ Redistribution and use in source and binary forms, with or without modification,
     <string name="TalkEnabled">&quot;Enable Talk&quot;</string>
     <string name="TalkEnabledSummary">&quot;Select for Avare to announce plan turns and fuel tank changes (Restart Required)&quot;</string>
 
-    <string name="ttsFly">Fly heading</string>
-    <string name="ttsDestinationSet">Destination set to</string>
-    <string name="ttsNavigateTo">Navigate to</string>
+    <string name="ttsFly" formatted="false">Fly heading %s</string>
+    <string name="ttsDestinationSet" formatted="false">Destination set to %s</string>
+    <string name="ttsDescendTo" formatted="false">Descend to your destination %s, fly heading %s, pattern altitude is %s feet</string>
+    <string name="ttsNavigateTo" formatted="false">Navigate to %s, fly heading %s</string>
 </resources>
