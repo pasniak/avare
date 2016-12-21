@@ -13,11 +13,12 @@ Redistribution and use in source and binary forms, with or without modification,
 package com.ds.avare.webinfc;
 
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.LinkedList;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 import com.ds.avare.PlanActivity;
 import com.ds.avare.StorageService;
@@ -25,13 +26,13 @@ import com.ds.avare.flight.Checklist;
 import com.ds.avare.storage.Preferences;
 import com.ds.avare.utils.GenericCallback;
 import com.ds.avare.utils.Helper;
+import com.ds.avare.voice.ReadText;
 
-import android.content.Context;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Message;
-import android.webkit.JavascriptInterface;
-import android.webkit.WebView;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.LinkedList;
 
 /**
  * 
@@ -135,7 +136,6 @@ public class WebAppListInterface {
 
     /**
      * Update the passed point on the List page
-     * @param passed
      */
     public void updateList() {
         mHandler.sendEmptyMessage(MSG_UPDATE_LIST);
@@ -156,7 +156,8 @@ public class WebAppListInterface {
      */
     public void moveForward() {
     	mService.getChecklist().moveForward();
-		updateList();
+        readWorkingItem();
+        updateList();
     }
 
 
@@ -179,7 +180,8 @@ public class WebAppListInterface {
     @JavascriptInterface
     public void moveTo(int item) {
     	mService.getChecklist().moveTo(item);
-		updateList();
+        readWorkingItem();
+        updateList();
     }
 
     /**
@@ -209,7 +211,6 @@ public class WebAppListInterface {
 
     /**
      * 
-     * @param num
      */
     @JavascriptInterface
     public void deleteItem() {
@@ -223,9 +224,8 @@ public class WebAppListInterface {
 
     /**
      * 
-     * @param id
-     * @param type
-     */	
+     * @param item
+     */
     @JavascriptInterface
     public void addToList(String item) {
     	/*
@@ -234,6 +234,8 @@ public class WebAppListInterface {
     	mHandler.sendEmptyMessage(MSG_BUSY);
 
     	mService.getChecklist().addStep(item);
+        if (mPref.isTalkEnabled()) ReadText.textToSpeech(item);
+
     	newList();
     	mHandler.sendEmptyMessage(MSG_NOTBUSY);
     }
@@ -273,7 +275,7 @@ public class WebAppListInterface {
 
     /**
      * 
-     * @param index
+     * @param name
      */
     @JavascriptInterface
     public void loadList(String name) {
@@ -290,12 +292,15 @@ public class WebAppListInterface {
         	}
         }
     	newList();
-    	mHandler.sendEmptyMessage(MSG_NOTBUSY);
+        readWorkingItem();
+
+        mHandler.sendEmptyMessage(MSG_NOTBUSY);
     }
+
 
     /**
      * 
-     * @param num
+     * @param name
      */
     @JavascriptInterface
     public void saveDelete(String name) {
@@ -492,4 +497,10 @@ public class WebAppListInterface {
         	}
         }
     };
+
+    private void readWorkingItem() {
+        if (mPref.isTalkEnabled()) {
+            ReadText.textToSpeech(mService.getChecklist().getWorkingItem());
+        }
+    }
 }
