@@ -140,7 +140,7 @@ public class ChecklistActivity extends Activity {
         mWebView = (WebView)view.findViewById(R.id.list_mainpage);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.getSettings().setBuiltInZoomControls(true);
-        mInfc = new WebAppListInterface(mContext, mWebView, new GenericCallback() {
+        mInfc = new WebAppListInterface(this, mContext, mWebView, new GenericCallback() {
             /*
              * (non-Javadoc)
              * @see com.ds.avare.utils.GenericCallback#callback(java.lang.Object)

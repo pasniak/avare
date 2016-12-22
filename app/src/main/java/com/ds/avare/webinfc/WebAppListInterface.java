@@ -13,6 +13,7 @@ Redistribution and use in source and binary forms, with or without modification,
 package com.ds.avare.webinfc;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -24,11 +25,13 @@ import com.ds.avare.PlanActivity;
 import com.ds.avare.StorageService;
 import com.ds.avare.flight.Checklist;
 import com.ds.avare.storage.Preferences;
+import com.ds.avare.utils.FileChooser;
 import com.ds.avare.utils.GenericCallback;
 import com.ds.avare.utils.Helper;
 import com.ds.avare.voice.ReadText;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -45,7 +48,8 @@ public class WebAppListInterface {
     private WebView mWebView;
     private ImportTask mImportTask;
     private GenericCallback mCallback;
-    
+    private Activity mActivity;
+
     private static final int MSG_UPDATE_LIST = 1;
     private static final int MSG_CLEAR_LIST = 2;
     private static final int MSG_ADD_LIST = 3;
@@ -53,17 +57,20 @@ public class WebAppListInterface {
     private static final int MSG_ADD_LIST_SAVE = 8;
     private static final int MSG_NOTBUSY = 9;
     private static final int MSG_BUSY = 10;
-    
+    private static final int MSG_SET_IMPORT = 11;
+
+
     private static final int MAX_FILE_LINE_SIZE = 256;
     private static final int MAX_FILE_LINES = 100;
 
     /** 
      * Instantiate the interface and set the context
      */
-    public WebAppListInterface(Context c, WebView ww, GenericCallback cb) {
+    public WebAppListInterface(Activity a, Context c, WebView ww, GenericCallback cb) {
         mPref = new Preferences(c);
         mWebView = ww;
         mCallback = cb;
+        mActivity = a;
     }
 
     /**
@@ -238,6 +245,20 @@ public class WebAppListInterface {
 
     	newList();
     	mHandler.sendEmptyMessage(MSG_NOTBUSY);
+    }
+
+    /**
+     *
+     * @param
+     */
+    @JavascriptInterface
+    public void chooser() {
+        new FileChooser(mActivity).setFileListener(new FileChooser.FileSelectedListener() {
+                                                      @Override public void fileSelected(final File file) {
+                                                          Message m = mHandler.obtainMessage(MSG_SET_IMPORT,
+                                                                  (Object)("'" + Helper.formatJsArgs(file.getAbsolutePath()) + "'"));
+                                                          mHandler.sendMessage(m);
+                                                      }}).showDialog();
     }
 
     /**
@@ -495,6 +516,11 @@ public class WebAppListInterface {
         	else if(MSG_BUSY == msg.what) {
         		mCallback.callback((Object)PlanActivity.SHOW_BUSY, null);
         	}
+            else if(MSG_SET_IMPORT == msg.what) {
+                String func = "javascript:set_import(" + (String)msg.obj + ")";
+                mWebView.loadUrl(func);
+            }
+
         }
     };
 

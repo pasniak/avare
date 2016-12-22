@@ -203,6 +203,14 @@ function save_list_add() {
 	toastr.success('List saved to ' + name);
 }
 
+function chooser() {
+    AndroidList.chooser();
+}
+
+function set_import(file_name) {
+	document.getElementById("import_input").value = file_name;
+}
+
 // clear the entire save list
 function save_clear() {
 	// clear the table
@@ -303,6 +311,8 @@ function save_add(name) {
                 <table class="table"><th>Import a Saved List File</th>
                     <tr>
                         <td><input id="import_input" spellcheck="false" placeholder="/sdcard/list.txt"></td>
+                        <!--<input type="file" name="file" id="file"> sadly we cannot do this -->
+                        <td><a onclick='chooser()'><u><b>Choose File</b></u></a></td>
                         <td><button class="btn btn-block" onclick="list_import()">Import</button></td>
                     </tr>
                 </table>
