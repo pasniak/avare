@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -115,6 +116,26 @@ public class ChecklistActivity extends Activity {
     public void onBackPressed() {
         ((MainActivity) this.getParent()).showMapTab();
     }
+
+
+    /*
+     * disables volume but allows easy navigation
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            mInfc.moveForward();
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            mInfc.moveBack();
+        }
+        return true;
+    }
+
 
     /*
      * (non-Javadoc)

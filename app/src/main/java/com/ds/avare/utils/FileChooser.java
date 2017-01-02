@@ -44,7 +44,7 @@ public class FileChooser {
 
     public FileChooser(Activity activity) {
         this.activity = activity;
-        dialog = new Dialog(activity);
+        dialog = new Dialog(activity, android.R.style.Theme_DeviceDefault);
         list = new ListView(activity);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> parent, View view, int which, long id) {
