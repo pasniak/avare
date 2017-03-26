@@ -17,15 +17,12 @@
 package com.ds.avare.voice;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.res.Resources;
-import android.os.Handler;
+import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.widget.Toast;
 
 import com.ds.avare.R;
 import com.ds.avare.storage.Preferences;
-import com.ds.avare.utils.DecoratedAlertDialogBuilder;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -45,14 +42,19 @@ public class ReadText {
     public static HashMap<String, String> mTtsParams;
 
 
+    private static void textMessage(String text) {
+        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            // On UI thread.
+            Toast.makeText(mContext.get(), text, Toast.LENGTH_LONG).show();
+        }
+    }
 
     private static void speak(String text, String loc) {
         if (!mPref.isTalkEnabled()) return;
 
         int result = mTts.setLanguage(new Locale(loc));
         if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-            Toast.makeText(mContext.get(), mContext.get().getString(R.string.no_tts_available_message)
-                    +" ("+loc+")", Toast.LENGTH_LONG).show();
+            textMessage( mContext.get().getString(R.string.no_tts_available_message)+" ("+loc+")");
         } else {
             if (mTts.isSpeaking()) {
                 stopTts();
@@ -62,86 +64,14 @@ public class ReadText {
     }
 
 
-    public static String getLanguage() {
-//        return MetaDB.getLanguage();
-        return "eng";
-    }
-
-
-    /**
-     * Ask the user what language they want.
-     *
-     * @param text The text to be read
-     */
-    public static void selectTts(Context context, String text) {
-        mTextToSpeak = text;
-
-        Resources res = mContext.get().getResources();
-        final DecoratedAlertDialogBuilder builder = new DecoratedAlertDialogBuilder(context);
-
-        // Build the language list if it's empty
-        if (availableTtsLocales.isEmpty()) {
-            buildAvailableLanguages();
-        }
-        if (availableTtsLocales.size() == 0) {
-            builder.setMessage(res.getString(R.string.no_tts_available_message))
-                    .setPositiveButton(res.getString(R.string.OK), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog,int id) {}
-                    });
-        } else {
-            ArrayList<CharSequence> dialogItems = new ArrayList<>();
-            final ArrayList<String> dialogIds = new ArrayList<>();
-            // Add option: "no tts"
-            dialogItems.add(res.getString(R.string.tts_no_tts));
-            dialogIds.add(NO_TTS);
-            for (int i = 0; i < availableTtsLocales.size(); i++) {
-                dialogItems.add(availableTtsLocales.get(i).getDisplayName());
-                dialogIds.add(availableTtsLocales.get(i).getISO3Language());
-            }
-            String[] items = new String[dialogItems.size()];
-            boolean[] checkedItems = new boolean[dialogItems.size()];
-            dialogItems.toArray(items);
-
-            builder.setTitle(res.getString(R.string.select_locale_title))
-                    .setMultiChoiceItems(items, checkedItems,
-                            new DialogInterface.OnMultiChoiceClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int id, boolean b) {
-                            String locale = dialogIds.get(id);
-                            if (!locale.equals(NO_TTS)) {
-                                speak(mTextToSpeak, locale);
-                            }
-                            /*
-                            String language = getLanguage(mDid, mOrd, mQuestionAnswer);
-                            if (language.equals("")) { // No language stored
-                                MetaDB.storeLanguage(mContext.get(), mDid, mOrd, mQuestionAnswer, locale);
-                            } else {
-                                MetaDB.updateLanguage(mContext.get(), mDid, mOrd, mQuestionAnswer, locale);
-                            }
-                            */
-                        }
-                    });
-        }
-        // Show the dialog after short delay so that user gets a chance to preview the card
-        final Handler handler = new Handler();
-        final int delay = 500;
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                builder.show();
-            }
-        }, delay);
-    }
-
-
     public static void textToSpeech(String text) {
         if (!mPref.isTalkEnabled()) return;
         if (mTextToSpeak!=null && mTextToSpeak.equals(text)) return;
 
         mTextToSpeak = text;
         // get the user's existing language preference
-        String language = getLanguage();
+        String language = "eng";
+
         // rebuild the language list if it's empty
         if (availableTtsLocales.isEmpty()) {
             buildAvailableLanguages();
@@ -156,9 +86,6 @@ public class ReadText {
                 return;
             }
         }
-
-        // Otherwise ask the user what language they want to use
-        ///////selectTts(mTextToSpeak); TODO
     }
 
 
@@ -182,10 +109,10 @@ public class ReadText {
                         // notify the reviewer that TTS has been initialized
                         ///((AbstractFlashcardViewer) mContext.get()).ttsInitialized(); TODO
                     } else {
-                        Toast.makeText(mContext.get(), mContext.get().getString(R.string.no_tts_available_message), Toast.LENGTH_LONG).show();
+                        textMessage(mContext.get().getString(R.string.no_tts_available_message));
                     }
                 } else {
-                    Toast.makeText(mContext.get(), mContext.get().getString(R.string.no_tts_available_message), Toast.LENGTH_LONG).show();
+                    textMessage(mContext.get().getString(R.string.no_tts_available_message));
                 }
                 Compat.setTtsOnUtteranceProgressListener(mTts);
             }
