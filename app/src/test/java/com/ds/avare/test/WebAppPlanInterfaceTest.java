@@ -155,6 +155,5 @@ public class WebAppPlanInterfaceTest extends InterfaceTest {
     public void setupInterface(Context ctx) {
         mWebAppPlanInterface = new WebAppPlanInterface(ctx, mWebView, new MyGenericCallback());
         mWebAppPlanInterface.connect(mStorageService);
-        
     }
 }

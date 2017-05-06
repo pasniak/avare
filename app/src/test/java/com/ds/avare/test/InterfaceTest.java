@@ -1,6 +1,8 @@
 package com.ds.avare.test;
 
 import android.content.Context;
+import android.os.SystemClock;
+import android.view.MotionEvent;
 import android.webkit.WebView;
 
 import com.ds.avare.MainActivity;
@@ -25,6 +27,8 @@ import java.util.Enumeration;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import static android.view.ViewConfiguration.getLongPressTimeout;
 
 /**
  * Created by pasniak on 5/5/2017.
@@ -122,7 +126,7 @@ abstract class InterfaceTest {
     private void setupWebView() {
         mWebView = new WebView(mCtx);
     }
-    
+
     abstract void setupInterface(Context ctx);
 
     private void prepStorageService() {
@@ -137,4 +141,21 @@ abstract class InterfaceTest {
             return null;
         }
     }
+
+    protected static MotionEvent getLongPressEvent(float x, float y) {
+        // simulate long press
+        long longPressMillis = getLongPressTimeout();
+        long downTime = SystemClock.uptimeMillis();
+        long eventTime = SystemClock.uptimeMillis() + longPressMillis;
+        int metaState = 0;
+        return MotionEvent.obtain(
+                downTime,
+                eventTime,
+                MotionEvent.ACTION_DOWN,
+                x,
+                y,
+                metaState
+        );
+    }
+
 }
