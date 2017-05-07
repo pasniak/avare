@@ -41,13 +41,16 @@ abstract class InterfaceTest {
     protected StorageService mStorageService;
     protected WebView mWebView;
 
-    private static String downloadDatabaseZip(Context ctx) throws IOException {
+    private static String getCycle() throws IOException {
         final String cycleUrl = "http://www.apps4av.org/new/version.php";
         final String currentCycle = new Scanner(new URL(cycleUrl).openStream(), "UTF-8").useDelimiter("\\A").next();
-        if (currentCycle.isEmpty()) { throw new IOException("Unable to get cycle from "+cycleUrl); }
+        if (currentCycle.isEmpty()) { throw new IOException("Unable to get cycle from "+cycleUrl); }        
+        return currentCycle;
+    }
+    
+    private static String downloadDatabaseZip(Context ctx, String currentCycle, String fileName) throws IOException {
         Preferences mPref = new Preferences(ctx);
-        final URL website = new URL(mPref.getRoot() + currentCycle + "/databases.zip");
-        final String fileName = "databases.zip";
+        final URL website = new URL(mPref.getRoot() + currentCycle + "/" + fileName);
         final String avareAppDir = System.getProperty("user.dir", "./"); // sth like C:\Users\Michal\StudioProjects\avare\app\build\tmp\1705\databases.zip
         final String cachedBuildFilePath = new File(avareAppDir).getAbsolutePath()
             + SLASH + "build" + SLASH + "tmp" + SLASH + currentCycle + SLASH + fileName;
@@ -65,29 +68,32 @@ abstract class InterfaceTest {
         return cachedBuildFilePath;
     }
 
-    private void unzipDb(String cachedBuildFilePath, String unzipFileName) throws IOException {
+    private void unzipDb(String cachedBuildFilePath, String unzipFileNameRegex, String subDir) throws IOException {
         final String roboTestDir = mMain.getFilesDir().getPath();
-        final File activityFilesDir = new File(roboTestDir);
+        final File activityFilesDir = new File(roboTestDir + (subDir=="" ? "" : SLASH + subDir));
+        activityFilesDir.mkdirs();
         final ZipFile zip = new ZipFile(cachedBuildFilePath);
         final Enumeration zipFileEntries = zip.entries();
         while (zipFileEntries.hasMoreElements()) {
             ZipEntry zipEntry = (ZipEntry) zipFileEntries.nextElement();
-            if (zipEntry.getName().equals(unzipFileName)) {
-                unzipFile(zip, zipEntry, unzipFileName, activityFilesDir);
+            if (zipEntry.getName().matches(unzipFileNameRegex)) {
+                unzipFile(zip, zipEntry, zipEntry.getName(), activityFilesDir);
             }
         }
     }
 
     private static void unzipFile(ZipFile zip, ZipEntry e, String unzipFileName, File toDirectory) throws IOException {
-        System.out.println ("Unzip " + unzipFileName + " to " + toDirectory);
+        System.out.print ("Unzip " + unzipFileName + " to " + toDirectory);
         BufferedInputStream bis = new BufferedInputStream(zip.getInputStream(e));
         FileOutputStream fos = new FileOutputStream(toDirectory + SLASH + unzipFileName);
-        int got;
+        int got, all = 0;
         final int BUFFER_SIZE = 1024 * 8;
         byte buffer[] = new byte[BUFFER_SIZE];
         while ((got = bis.read(buffer)) != -1) {
             fos.write(buffer, 0, got);
+            all += got;
         }
+        System.out.println (" (" + all + " bytes)");
     }
 
     private void deleteDb() {
@@ -107,14 +113,26 @@ abstract class InterfaceTest {
         file.delete();
     }
 
+    protected void downloadDatabases () throws IOException {
+        String cachedBuildFilePath = downloadDatabaseZip(mCtx, getCycle(), "databases.zip"); // download database to the build cache
+        unzipDb(cachedBuildFilePath, "main.db", ""); // unzip to the test directory
+    }
+    
+    protected void downloadWeather ()  throws IOException {
+        String weatherCachedBuildFilePath = downloadDatabaseZip(mCtx, "", "weather.zip"); // download weather to the build cache
+        unzipDb(weatherCachedBuildFilePath, ".*", ""); // unzip all to the test directory
+    }
+        
     @Before
     public void setUp() throws IOException {
         mMain = Robolectric.setupActivity(MainActivity.class);
-        String cachedBuildFilePath = downloadDatabaseZip(mCtx); // download database to the build cache
-        unzipDb(cachedBuildFilePath, "main.db"); // unzip main db to the test directory
+        
+        downloadDatabases(); // all tests require FAA database    
+        downloadMore(); // some test require more data
+
         prepStorageService();
         setupWebView();
-        setupInterface(mCtx);
+        setupInterface(mCtx); // setup test-specific GUIs
     }
 
     @After
@@ -134,6 +152,9 @@ abstract class InterfaceTest {
         mStorageService.onCreate();
     }
 
+    // override to download data beyond base FAA data
+    void downloadMore () throws IOException {}
+    
     // test helpers
     protected static class MyGenericCallback extends GenericCallback {
         @Override
