@@ -83,11 +83,11 @@ public class LocationViewTest extends InterfaceTest {
         assertNotNull("TTN METAR not found", d.metar);
         assertNotNull("TTN Performance not found", d.performance);
         String[] perf = d.performance.split("\\n");
-        assertTrue("Performance has time",      perf[0].matches("\\d{6}Z"));
-        assertTrue("Performance has DA",        perf[1].matches("Density Altitude -?\\d* ft"));
-        assertTrue("Performance has runway",    perf[2].matches("Best Wind Runway \\d{2}"));
-        assertTrue("Performance has wind",      perf[3].matches(" \\d{1,2}KT (Head|Tail)"));
-        assertTrue("Performance has crosswind", perf[4].matches(" \\d{1,2}KT (Left|Right) X"));
+        assertTrue("Performance has time "+perf[0],      perf[0].matches("\\d{6}Z"));
+        assertTrue("Performance has DA "+perf[1],        perf[1].matches("Density Altitude -?\\d* ft"));
+        assertTrue("Performance has runway "+perf[2],    perf[2].matches("Best Wind Runway \\d{2}"));
+        assertTrue("Performance has wind "+perf[3],      perf[3].matches(" \\d{1,2}(G\\d{1,2})?KT (Head|Tail)"));
+        assertTrue("Performance has crosswind "+perf[4], perf[4].matches(" \\d{1,2}(G\\d{1,2})?KT (Left|Right) X"));
         
         HtmlAsserts.assertRowCount(d.navaids, 4);
     }
