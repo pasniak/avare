@@ -149,6 +149,10 @@ public class StorageService extends Service {
      */
     private Gps mGps;
     Orientation mOrientation;
+    public OrientationInterface ointf;
+    
+    double mPitch;
+    void setPitch(double pitch) { mPitch = pitch;}
 
     /**
      * Store this
@@ -581,7 +585,7 @@ public class StorageService extends Service {
                 /*
          * Start GPS, and call all activities registered to listen to GPS
          */
-        OrientationInterface ointf = new OrientationInterface() {
+        ointf = new OrientationInterface() {
 
             /**
              *
@@ -600,6 +604,17 @@ public class StorageService extends Service {
                     infc.onSensorChanged(yaw, pitch, roll, acceleration);
                 }
             }
+            @Override
+            public void onAhrsReport(double yaw, double pitch, double roll, double acceleration, double slip) {
+                LinkedList<OrientationInterface> list = extracted();
+                Iterator<OrientationInterface> it = list.iterator();
+                while (it.hasNext()) {
+                    OrientationInterface infc = it.next();
+                    infc.onAhrsReport(yaw, pitch, roll, acceleration, slip);
+                }
+            }
+            @Override
+            public void onStratuxSituationChange(double yaw, double pitch, double roll, double acceleration, double slip, double pa) {}
         };
         mOrientation = new Orientation(this, ointf);
     }

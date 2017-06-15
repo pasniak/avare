@@ -16,5 +16,7 @@ package com.ds.avare.orientation;
  * Created by zkhan on 12/19/16.
  */
 public interface OrientationInterface {
-    public void onSensorChanged(double yaw, double pitch, double roll, double acceleration);
+    void onSensorChanged(double yaw, double pitch, double roll, double acceleration);
+    void onAhrsReport(double yaw, double pitch, double roll, double acceleration, double slip);
+    void onStratuxSituationChange(double yaw, double pitch, double roll, double acceleration, double slip, double pa);
 }

@@ -81,6 +81,8 @@ public class PfdView extends View {
     private double           mLat, mLon;
     private SparseArray<Traffic>     mTraffic;
     private BitmapHolder     mAirplaneBitmap;
+    private String mAhrsSourceName;
+    
     private static final ColorFilter colorFilter = new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
 
 
@@ -118,6 +120,7 @@ public class PfdView extends View {
         mCdi = 0;
         mVdi = 3;
         mPath = new Path();
+        mPressureAltitude = Float.NEGATIVE_INFINITY;
         mAirplaneBitmap = new BitmapHolder(context, R.drawable.plane);
     }
 
@@ -489,12 +492,14 @@ public class PfdView extends View {
         mPaint.setStyle(style);
 
         // pressure altitude
-        if (mPressureAltitude > 0) {
+        if (mPressureAltitude != Float.NEGATIVE_INFINITY) {
             mPaint.setColor(Color.BLACK);
-            canvas.drawRect(x(50), y(-35), x(85), y(-45), mPaint);
-            mPaint.setColor(Color.BLUE);
-            int pa = (int)altitudeToPressure(mPressureAltitude);
-            canvas.drawText(Integer.toString(pa), x(54), y(-42), mPaint);
+            canvas.drawRect(x(50), y(-35), x(85), y(-41), mPaint);
+            mPaint.setColor(Color.CYAN);
+            double pa = altitudeToPressure(mPressureAltitude);
+            mPaint.setTextSize(scaledTextSize);
+            canvas.drawText(Double.toString(pa).substring(0,5)+"\"", x(54), y(-40), mPaint);
+            mPaint.setTextSize(normalTextSize);
         }
 
         /**
@@ -840,9 +845,19 @@ public class PfdView extends View {
         // Warning. Only when not moving
         if (mSpeed==0) {
             mPaint.setColor(Color.YELLOW);
-            canvas.drawText(mContext.getString(R.string.SeeHelp), x(-95), y(-45), mPaint);
+            canvas.drawText(mContext.getString(R.string.SeeHelp), x(-98), y(-45), mPaint);
         }
 
+        /* 
+         * source of attitude data 
+         */
+        if (null != mAhrsSourceName) {
+            mPaint.setColor(Color.GRAY);
+            mPaint.setTextSize(normalTextSize*.5f);
+            canvas.drawText(mAhrsSourceName, x(-100), y(-124), mPaint);
+            mPaint.setTextSize(normalTextSize);
+        }
+        
         /*
          * draw VDI
          */
@@ -906,6 +921,8 @@ public class PfdView extends View {
 
     }
 
+    public void setAhrsSourceName(String sourceName) { mAhrsSourceName = sourceName; }
+    
     public void setPitch(float pitch) {
         mPitch = pitch;
     }

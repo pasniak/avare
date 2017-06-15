@@ -283,6 +283,18 @@ public class IHelperService extends Service {
                     l.setAltitude(alt / Preferences.heightConversion);
                     mService.getGps().onLocationChanged(l, type);
                 }
+                else if (type.equals("ahrs")) {
+                    try {
+                        mService.ointf.onAhrsReport(
+                                Double.parseDouble(object.getString("yaw")),
+                                Double.parseDouble(object.getString("pitch")),
+                                Double.parseDouble(object.getString("roll")),
+                                Double.parseDouble(object.getString("gs")),
+                                Double.parseDouble(object.getString("slip")
+                                )
+                        );
+                    } catch (Exception e) {}
+                }
                 else if(type.equals("nexrad")) {
                     
                     /*

@@ -528,9 +528,23 @@ Redistribution and use in source and binary forms, with or without modification,
     <string name="VerticalPfd">VerticalPfd</string>
     <string name="VerticalPfdLabel">PFD Vertical Mount</string>
     <string name="VerticalPfdSummary">&quot;Select to use PFD mounted vertically, otherwise horizontally&quot;</string>
-    <string name="PfdUsesPhoneMagneticHeading">PfdUsesPhoneMagneticHeading</string>
-    <string name="PfdUsesPhoneMagneticHeadingLabel">PFD Phone\'s Mag Sensor</string>
-    <string name="PfdUsesPhoneMagneticHeadingSummary">Select for PFD to use phone\'s magnetic heading sensor for yaw. Disabled by default as the sensor is often unstable.</string>
+    <string name="PfdUsesInternalAhrs">PfdUsesInternalAhrs</string>
+    <string name="PfdUsesInternalAhrsLabel">PFD Internal AHRS</string>
+    <string name="PfdUsesInternalAhrsSummary">Select for PFD to use Internal AHRS.</string>
+    <string name="PfdUsesInternalMagneticHeading">PfdUsesInternalMagneticHeading</string>
+    <string name="PfdUsesInternalMagneticHeadingLabel">PFD Internal Mag Sensor</string>
+    <string name="PfdUsesInternalMagneticHeadingSummary">Select for PFD to use internal magnetic sensor for yaw. Disabled by default as the sensor is often unstable.</string>
+    <string name="PfdUsesExternalAhrs">PfdUsesExternalAhrs</string>
+    <string name="PfdUsesExternalAhrsLabel">PFD External AHRS</string>
+    <string name="PfdUsesExternalAhrsSummary">Select for PFD to use External AHRS.</string>
+    <string name="PfdUsesStratuxAhrs">PfdUsesStratux</string>
+    <string name="PfdUsesStratuxAhrsLabel">PFD Stratux AHRS</string>
+    <string name="PfdUsesStratuxAhrsSummary">Select for PFD to use Stratux Situation web socket.</string>
+    <string name="StratuxIP">StratuxIP</string>
+    <string name="StratuxIPLabel">Stratux IP adress</string>
+    <string name="StratuxIPSummary">IP address of Stratux Situation web socket.</string>
+    PfdUsesStratuxAhrs
+
     <string name="SeeHelp">See Help.</string>
     <string name="Obstacles">Obstacles</string>
     <string name="ObstaclesSummary">Show obstacles on map</string>

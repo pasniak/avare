@@ -1146,7 +1146,15 @@ public class Preferences {
         return mPref.getBoolean(mContext.getString(R.string.VerticalPfd), false);
     }
 
-    public boolean isPfdUsingPhoneMagneticHeading() { return mPref.getBoolean(mContext.getString(R.string.PfdUsesPhoneMagneticHeading), false); }
+    public boolean isPfdUsingInternalAhrs() {return mPref.getBoolean(mContext.getString(R.string.PfdUsesInternalAhrs), true);}
+    
+    public boolean isPfdUsingInternalMagneticHeading() { return mPref.getBoolean(mContext.getString(R.string.PfdUsesInternalMagneticHeading), false); }
+
+    public boolean isPfdUsingExternalAhrs() { return mPref.getBoolean(mContext.getString(R.string.PfdUsesExternalAhrs), false); }
+
+    public boolean isPfdUsingStratuxAhrs() { return mPref.getBoolean(mContext.getString(R.string.PfdUsesStratuxAhrs), false); }
+    
+    public String getStratuxIp()  { return mPref.getString(mContext.getString(R.string.StratuxIP), "192.168.10.1"); }
 
     public int getWindsAloftCeiling() {
         try {

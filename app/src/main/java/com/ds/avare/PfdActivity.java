@@ -28,6 +28,7 @@ import android.view.Window;
 
 import com.ds.avare.adsb.Traffic;
 import com.ds.avare.gps.GpsInterface;
+import com.ds.avare.network.StratuxTask;
 import com.ds.avare.orientation.OrientationInterface;
 import com.ds.avare.storage.Preferences;
 import com.ds.avare.utils.Helper;
@@ -54,7 +55,7 @@ public class PfdActivity extends Activity {
 
     private PfdView mPfdView;
 
-
+    private StratuxTask mStratuxTask;
 
     /**
      * GPS calls
@@ -116,13 +117,41 @@ public class PfdActivity extends Activity {
 
         @Override
         public void onSensorChanged(double yaw, double pitch, double roll, double acceleration) {
-            mPfdView.setPitch(-(float)pitch);
-            mPfdView.setRoll(-(float)roll);
-            if (mPref.isPfdUsingPhoneMagneticHeading()) {
-                mPfdView.setYaw((float) yaw);
+            if (mPref.isPfdUsingInternalAhrs()) {
+                mPfdView.setAhrsSourceName("Internal");
+                mPfdView.setPitch(-(float) pitch);
+                mPfdView.setRoll(-(float) roll);
+                if (mPref.isPfdUsingInternalMagneticHeading()) {
+                    mPfdView.setYaw((float) yaw);
+                }
+                mPfdView.postInvalidate();
             }
-            mPfdView.setAcceleration(acceleration);
-            mPfdView.postInvalidate();
+        }
+        
+        @Override
+        public void onAhrsReport(double yaw, double pitch, double roll, double acceleration, double slip) {
+            if (mPref.isPfdUsingExternalAhrs()) {
+                mPfdView.setAhrsSourceName("External");
+                mPfdView.setPitch((float) pitch);
+                mPfdView.setRoll((float) roll);
+                //mPfdView.setYaw((float)yaw);
+                mPfdView.setAcceleration(acceleration);
+                mPfdView.postInvalidate();
+            }
+        }
+        
+        @Override
+        public void onStratuxSituationChange(double yaw, double pitch, double roll, double acceleration, double slip, double pa) {
+            if (mPref.isPfdUsingStratuxAhrs()) {
+                mPfdView.setAhrsSourceName("Stratux");
+                mPfdView.setYaw((float)yaw);
+                mPfdView.setPitch((float) pitch);
+                mPfdView.setRoll((float) roll);
+                mPfdView.setAcceleration((float) acceleration);
+                mPfdView.setSlip((float) slip);
+                mPfdView.setPressureAltitude((float) pa);
+                mPfdView.postInvalidate();
+            }
         }
     };
 
@@ -154,7 +183,12 @@ public class PfdActivity extends Activity {
         setContentView(view);
 
         mPfdView = (PfdView) view.findViewById(R.id.pfd_view);
-
+        
+        if (mPref.isPfdUsingStratuxAhrs()) {
+            mStratuxTask = new StratuxTask(mPref.getStratuxIp());
+            mStratuxTask.registerListener(mOrientationInfc);
+            mStratuxTask.execute();
+        }
     }
 
 
@@ -204,6 +238,9 @@ public class PfdActivity extends Activity {
         Intent intent = new Intent(this, StorageService.class);
         getApplicationContext().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
+        if (null != mStratuxTask) {
+            mStratuxTask.registerListener(mOrientationInfc);
+        }
     }
 
     /* (non-Javadoc)
@@ -217,7 +254,9 @@ public class PfdActivity extends Activity {
             mService.unregisterGpsListener(mGpsInfc);
             mService.unregisterOrientationListener(mOrientationInfc);
         }
-
+        if (null != mStratuxTask) {
+            mStratuxTask.unregisterListener(mOrientationInfc);
+        }
         /*
          * Clean up on pause that was started in on resume
          */

@@ -208,9 +208,29 @@ authors: zkhan, jlmcgraw
             android:title="@string/VerticalPfdLabel" />
         <CheckBoxPreference
             android:defaultValue="false"
-            android:key="@string/PfdUsesPhoneMagneticHeading"
-            android:summary="@string/PfdUsesPhoneMagneticHeadingSummary"
-            android:title="@string/PfdUsesPhoneMagneticHeadingLabel" />            
+            android:key="@string/PfdUsesInternalAhrs"
+            android:summary="@string/PfdUsesInternalAhrsSummary"
+            android:title="@string/PfdUsesInternalAhrsLabel" />            
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/PfdUsesInternalMagneticHeading"
+            android:summary="@string/PfdUsesInternalMagneticHeadingSummary"
+            android:title="@string/PfdUsesInternalMagneticHeadingLabel" />            
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/PfdUsesExternalAhrs"
+            android:summary="@string/PfdUsesExternalAhrsSummary"
+            android:title="@string/PfdUsesExternalAhrsLabel" />            
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/PfdUsesStratuxAhrs"
+            android:summary="@string/PfdUsesStratuxAhrsSummary"
+            android:title="@string/PfdUsesStratuxAhrsLabel" />            
+        <EditTextPreference
+            android:defaultValue="192.168.10.1"
+            android:key="@string/StratuxIP"
+            android:summary="@string/StratuxIPSummary"
+            android:title="@string/StratuxIPLabel" />         
     </PreferenceScreen>
         
     <PreferenceScreen 
