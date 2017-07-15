@@ -133,7 +133,7 @@ public class PfdActivity extends Activity {
             if (mPref.isPfdUsingExternalAhrs()) {
                 mPfdView.setAhrsSourceName("External");
                 mPfdView.setPitch((float) pitch);
-                mPfdView.setRoll((float) roll);
+                mPfdView.setRoll(-(float) roll);
                 //mPfdView.setYaw((float)yaw);
                 mPfdView.setAcceleration(acceleration);
                 mPfdView.postInvalidate();
@@ -146,7 +146,7 @@ public class PfdActivity extends Activity {
                 mPfdView.setAhrsSourceName("Stratux");
                 mPfdView.setYaw((float)yaw);
                 mPfdView.setPitch((float) pitch);
-                mPfdView.setRoll((float) roll);
+                mPfdView.setRoll(-(float) roll);
                 mPfdView.setAcceleration((float) acceleration);
                 mPfdView.setSlip((float) slip);
                 mPfdView.setPressureAltitude((float) pa);
