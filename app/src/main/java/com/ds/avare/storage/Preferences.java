@@ -1112,6 +1112,10 @@ public class Preferences {
         return intervalInt;
     }
 
+    public boolean isTalkEnabled() {
+        return mPref.getBoolean(mContext.getString(R.string.prefTalkEnabled), false);
+    }
+    
     public boolean isTileSize256() {
         return mPref.getBoolean(mContext.getString(R.string.TileSize), false);
     }

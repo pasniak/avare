@@ -64,6 +64,7 @@ import com.ds.avare.utils.NetworkHelper;
 import com.ds.avare.utils.OptionButton;
 import com.ds.avare.utils.Tips;
 import com.ds.avare.views.LocationView;
+import com.ds.avare.voice.ReadText;
 import com.ds.avare.webinfc.WebAppMapInterface;
 
 import java.io.File;
@@ -1202,6 +1203,9 @@ public class LocationActivity extends Activity implements Observer {
 					break;
 
 				case FuelTimer.SWITCH_TANK:
+
+                    ReadText.textToSpeech(LocationActivity.this.getString(R.string.switchTanks));
+
 					AlertDialog alertDialog = new DecoratedAlertDialogBuilder(LocationActivity.this).create();
 					alertDialog.setTitle(LocationActivity.this.getString(R.string.switchTanks));
 					alertDialog.setCancelable(false);

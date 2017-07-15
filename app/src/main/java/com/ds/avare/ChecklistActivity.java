@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -117,6 +118,27 @@ public class ChecklistActivity extends Activity {
     }
 
     /*
+     * disables volume but allows easy navigation
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            mInfc.moveForward();
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            mInfc.moveBack();
+        }
+        return true;
+    }
+
+
+    /*
+
+    /*
      * (non-Javadoc)
      * 
      * @see android.app.Activity#onCreate(android.os.Bundle)
@@ -140,7 +162,7 @@ public class ChecklistActivity extends Activity {
         mWebView = (WebView)view.findViewById(R.id.list_mainpage);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.getSettings().setBuiltInZoomControls(true);
-        mInfc = new WebAppListInterface(mContext, mWebView, new GenericCallback() {
+        mInfc = new WebAppListInterface(this, mContext, mWebView, new GenericCallback() {
             /*
              * (non-Javadoc)
              * @see com.ds.avare.utils.GenericCallback#callback(java.lang.Object)

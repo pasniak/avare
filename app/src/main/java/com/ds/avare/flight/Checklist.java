@@ -12,11 +12,11 @@ Redistribution and use in source and binary forms, with or without modification,
 
 package com.ds.avare.flight;
 
-import java.util.LinkedList;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.LinkedList;
 
 /**
  * All lists get stored and get retrieved in JSON format
@@ -307,5 +307,16 @@ public class Checklist {
      */
     public boolean isSelected(int step) {
     	return (mWorkingIndex == step);
+    }
+
+    /**
+     * @return currently selected item, if available, else empty string
+     */
+    public String getWorkingItem() {
+        String steps[] = getStepsArray();
+        if (steps.length > 0 && mWorkingIndex >= 0)
+            return steps[mWorkingIndex];
+        else
+            return "";
     }
 }

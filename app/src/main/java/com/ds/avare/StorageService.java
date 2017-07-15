@@ -51,6 +51,7 @@ import com.ds.avare.place.Obstacle;
 import com.ds.avare.place.Plan;
 import com.ds.avare.position.Movement;
 import com.ds.avare.position.Pan;
+import com.ds.avare.position.Projection;
 import com.ds.avare.shapes.Draw;
 import com.ds.avare.shapes.MetarLayer;
 import com.ds.avare.shapes.PixelDraw;
@@ -61,11 +62,13 @@ import com.ds.avare.shapes.TileMap;
 import com.ds.avare.storage.DataSource;
 import com.ds.avare.userDefinedWaypoints.UDWMgr;
 import com.ds.avare.utils.BitmapHolder;
+import com.ds.avare.utils.Helper;
 import com.ds.avare.utils.InfoLines;
 import com.ds.avare.utils.Mutex;
 import com.ds.avare.utils.NavComments;
 import com.ds.avare.utils.ShadowedText;
 import com.ds.avare.utils.TimeConstants;
+import com.ds.avare.voice.ReadText;
 import com.ds.avare.weather.AdsbWeatherCache;
 import com.ds.avare.weather.InternetWeatherCache;
 
@@ -602,6 +605,9 @@ public class StorageService extends Service {
             }
         };
         mOrientation = new Orientation(this, ointf);
+
+        // Initialize text-to-speech. This is an asynchronous operation.
+        ReadText.initializeTts(this);
     }
         
     /* (non-Javadoc)
@@ -636,6 +642,9 @@ public class StorageService extends Service {
         if(mOrientation != null) {
             mOrientation.stop();
         }
+
+
+        ReadText.releaseTts();
 
         super.onDestroy();
         
@@ -726,6 +735,14 @@ public class StorageService extends Service {
         if(null != mPlan){
         	mPlan.makeInactive();
         }
+
+        if (destination != null) {
+            double headingToDestination = Projection.getStaticBearing(
+                    mGpsParams.getLongitude(), mGpsParams.getLatitude(),
+                    destination.getLocation().getLongitude(), destination.getLocation().getLatitude());
+            headingToDestination = Helper.getMagneticHeading(headingToDestination, mGpsParams.getDeclinition());
+            ReadText.destinationSetTo(destination.getID(), headingToDestination);
+        }
     }
 
     /**
@@ -739,6 +756,19 @@ public class StorageService extends Service {
         // TODO: I don't like this here, it should be pushed into the PLAN itself
         if(null != destination) {
         	mNavComments.setRight(destination.getCmt());
+
+            // last point before the final destination
+            Plan p = getPlan();
+
+            double headingToDestination = destination.getBearing();
+            headingToDestination = Helper.getMagneticHeading(headingToDestination, mGpsParams.getDeclinition());
+
+            if (p != null && p.findNextNotPassed() == p.getDestinationNumber() - 1) {
+                int patternAltitude = (int)Math.round(destination.getPatternAltitude()/100)*100; // rounded to nearest 100ft
+                ReadText.navigateToLast(destination.getID(), headingToDestination, patternAltitude);
+            }
+            else
+                ReadText.navigateTo(destination.getID(), headingToDestination);
         }
     }
 
