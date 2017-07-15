@@ -285,14 +285,12 @@ public class IHelperService extends Service {
                 }
                 else if (type.equals("ahrs")) {
                     try {
-                        mService.ointf.onAhrsReport(
-                                Double.parseDouble(object.getString("yaw")),
-                                Double.parseDouble(object.getString("pitch")),
-                                Double.parseDouble(object.getString("roll")),
-                                Double.parseDouble(object.getString("gs")),
-                                Double.parseDouble(object.getString("slip")
-                                )
-                        );
+                        double yaw = object.getDouble("yaw");
+                        double pitch = object.getDouble("pitch");
+                        double roll = object.getDouble("roll");
+                        double acceleration = object.getDouble("gs");
+                        double slip = object.getDouble("slip");
+                        mService.ointf.onAhrsReport(yaw, pitch, roll, acceleration, slip);
                     } catch (Exception e) {}
                 }
                 else if(type.equals("nexrad")) {

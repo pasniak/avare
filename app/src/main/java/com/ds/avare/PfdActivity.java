@@ -119,8 +119,11 @@ public class PfdActivity extends Activity {
         public void onSensorChanged(double yaw, double pitch, double roll, double acceleration) {
             if (mPref.isPfdUsingInternalAhrs()) {
                 mPfdView.setAhrsSourceName("Internal");
-                mPfdView.setPitch(-(float) pitch);
-                mPfdView.setRoll(-(float) roll);
+                // if we are using external pitch/roll source it does not make sense to use internal
+                if (!mPref.isPfdUsingExternalAhrs() && !mPref.isPfdUsingStratuxAhrs()) {
+                    mPfdView.setPitch(-(float) pitch);
+                    mPfdView.setRoll(-(float) roll);
+                }
                 if (mPref.isPfdUsingInternalMagneticHeading()) {
                     mPfdView.setYaw((float) yaw);
                 }
@@ -134,8 +137,11 @@ public class PfdActivity extends Activity {
                 mPfdView.setAhrsSourceName("External");
                 mPfdView.setPitch((float) pitch);
                 mPfdView.setRoll(-(float) roll);
-                //mPfdView.setYaw((float)yaw);
-                mPfdView.setAcceleration(acceleration);
+                mPfdView.setSlip((float) slip);
+                if (!mPref.isPfdUsingInternalMagneticHeading()) {
+                    mPfdView.setYaw((float) yaw);
+                }
+                //mPfdView.setAcceleration(acceleration);  // not needed as slip is calculated externally
                 mPfdView.postInvalidate();
             }
         }
@@ -144,11 +150,13 @@ public class PfdActivity extends Activity {
         public void onStratuxSituationChange(double yaw, double pitch, double roll, double acceleration, double slip, double pa) {
             if (mPref.isPfdUsingStratuxAhrs()) {
                 mPfdView.setAhrsSourceName("Stratux");
-                mPfdView.setYaw((float)yaw);
+                if (!mPref.isPfdUsingInternalMagneticHeading()) {
+                    mPfdView.setYaw((float) yaw);
+                }
                 mPfdView.setPitch((float) pitch);
                 mPfdView.setRoll(-(float) roll);
-                mPfdView.setAcceleration((float) acceleration);
-                mPfdView.setSlip((float) slip);
+                //mPfdView.setAcceleration((float) acceleration); // not needed as slip is calculated externally
+                mPfdView.setSlip(-(float) slip);
                 mPfdView.setPressureAltitude((float) pa);
                 mPfdView.postInvalidate();
             }
